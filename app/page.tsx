@@ -20,6 +20,7 @@ export default function Home() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
+  const [isMetadataLoaded, setIsMetadataLoaded] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -66,7 +67,8 @@ export default function Home() {
       console.log("handleLoadedMetadata called, duration:", dur);
       setDuration(dur);
       setCurrentTime(0);
-      
+      setIsMetadataLoaded(true);
+
       // Auto-play when metadata is loaded if play was requested
       if (isPlaying && audioRef.current.paused) {
         audioRef.current.play().catch(err => {
@@ -92,6 +94,22 @@ export default function Home() {
       audio.removeEventListener("loadedmetadata", handleLoadedMetadata);
     };
   }, [currentTrackIndex]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const updateTime = () => {
+      setCurrentTime(audio.currentTime);
+      setDuration(audio.duration);
+      setIsMetadataLoaded(true);
+    };
+
+    audio.addEventListener("timeupdate", updateTime);
+    return () => {
+      audio.removeEventListener("timeupdate", updateTime);
+    };
+  }, []);
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTime = Number(e.target.value);
@@ -184,14 +202,14 @@ export default function Home() {
           <input
             type="range"
             min="0"
-            max={duration || 1}
+            max={isMetadataLoaded ? (duration || 1) : 1}
             step="0.1"
             value={currentTime}
             onChange={handleSeek}
-            disabled={duration > 0 ? undefined : true}
+            disabled={!isMetadataLoaded}
             className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-zinc-900 dark:accent-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <span>{formatTime(duration)}</span>
+          <span>{isMetadataLoaded ? formatTime(duration) : "0:00"}</span>
         </div>
 
         {/* Controls */}
