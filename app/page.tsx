@@ -131,7 +131,10 @@ export default function Home() {
   };
 
   // Bookmark handlers
+  const [bookmarkTimestamp, setBookmarkTimestamp] = useState<number>(0);
+
   const handleAddBookmark = () => {
+    setBookmarkTimestamp(currentTime);
     setIsBookmarkModalOpen(true);
   };
 
@@ -140,7 +143,7 @@ export default function Home() {
     const newBookmark: Bookmark = {
       id: crypto.randomUUID(),
       name,
-      timestamp: currentTime,
+      timestamp: bookmarkTimestamp,
       createdAt: Date.now(),
     };
     setTrackBookmarks((prev) => ({
@@ -366,7 +369,7 @@ export default function Home() {
         isOpen={isBookmarkModalOpen}
         onClose={() => setIsBookmarkModalOpen(false)}
         onSave={handleSaveBookmark}
-        currentTime={currentTime}
+        bookmarkTimestamp={bookmarkTimestamp}
       />
     </div>
   );

@@ -6,21 +6,21 @@ interface BookmarkModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (name: string) => void;
-  currentTime?: number;
+  bookmarkTimestamp?: number;
 }
 
-export default function BookmarkModal({ isOpen, onClose, onSave, currentTime }: BookmarkModalProps) {
+export default function BookmarkModal({ isOpen, onClose, onSave, bookmarkTimestamp }: BookmarkModalProps) {
   const [name, setName] = useState("");
 
   // Generate unique timestamp-based name when modal opens
   useEffect(() => {
-    if (isOpen && currentTime !== undefined) {
-      const minutes = Math.floor(currentTime / 60);
-      const seconds = Math.floor(currentTime % 60);
+    if (isOpen && bookmarkTimestamp !== undefined) {
+      const minutes = Math.floor(bookmarkTimestamp / 60);
+      const seconds = Math.floor(bookmarkTimestamp % 60);
       const formattedTime = `${minutes}:${seconds.toString().padStart(2, "0")}`;
       setName(`Bookmark at ${formattedTime}`);
     }
-  }, [isOpen, currentTime]);
+  }, [isOpen, bookmarkTimestamp]);
 
   if (!isOpen) return null;
 
