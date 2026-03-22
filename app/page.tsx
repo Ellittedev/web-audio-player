@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import AudioUploader from "@/components/AudioUploader";
+import BookmarkModal from "@/components/BookmarkModal";
 
 interface CustomTrack {
   id: string;
@@ -10,10 +11,17 @@ interface CustomTrack {
   duration?: number;
 }
 
+interface Bookmark {
+  id: string;
+  name: string;
+  timestamp: number;
+  createdAt: number;
+}
+
 export default function Home() {
   const [customTracks, setCustomTracks] = useState<CustomTrack[]>([]);
   const tracks = customTracks;
-  
+
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -21,29 +29,17 @@ export default function Home() {
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
 
+  // Bookmarks: map of trackId -> bookmarks array
+  const [trackBookmarks, setTrackBookmarks] = useState<Record<string, Bookmark[]>>({});
+
+  const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
+
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const currentTrack = tracks.length > 0 ? tracks[currentTrackIndex] : null;
 
-  useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = isMuted ? 0 : volume;
-    }
-  }, [volume, isMuted]);
-
-  // Reload audio when track changes
-  useEffect(() => {
-    if (audioRef.current && currentTrack) {
-      console.log('Loading track:', currentTrack.title, 'src:', currentTrack.src);
-      audioRef.current.load();
-      if (isPlaying) {
-        audioRef.current.play().catch(err => {
-          console.error('Play error:', err);
-          setIsPlaying(false);
-        });
-      }
-    }
-  }, [currentTrackIndex]);
+  // Get bookmarks for current track
+  const bookmarks = currentTrack ? trackBookmarks[currentTrack.id] || [] : [];
 
   const handleUploadComplete = (audioFile: { name: string; url: string; id: string }) => {
     const newTrack: CustomTrack = {
@@ -66,7 +62,7 @@ export default function Home() {
       console.log("handleLoadedMetadata called, duration:", dur);
       setDuration(dur);
       setCurrentTime(0);
-      
+
       // Auto-play when metadata is loaded if play was requested
       if (isPlaying && audioRef.current.paused) {
         audioRef.current.play().catch(err => {
@@ -112,7 +108,7 @@ export default function Home() {
 
   const togglePlay = () => {
     if (!audioRef.current || !currentTrack) return;
-    
+
     if (isPlaying) {
       audioRef.current.pause();
     } else {
@@ -132,6 +128,40 @@ export default function Home() {
   const prevTrack = () => {
     setCurrentTrackIndex((prev) => (prev - 1 + tracks.length) % tracks.length);
     setCurrentTime(0);
+  };
+
+  // Bookmark handlers
+  const handleAddBookmark = () => {
+    setIsBookmarkModalOpen(true);
+  };
+
+  const handleSaveBookmark = (name: string) => {
+    if (!currentTrack) return;
+    const newBookmark: Bookmark = {
+      id: crypto.randomUUID(),
+      name,
+      timestamp: currentTime,
+      createdAt: Date.now(),
+    };
+    setTrackBookmarks((prev) => ({
+      ...prev,
+      [currentTrack.id]: [...(prev[currentTrack.id] || []), newBookmark],
+    }));
+  };
+
+  const handleJumpToBookmark = (timestamp: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = timestamp;
+      setCurrentTime(timestamp);
+    }
+  };
+
+  const handleDeleteBookmark = (bookmarkId: string) => {
+    if (!currentTrack) return;
+    setTrackBookmarks((prev) => ({
+      ...prev,
+      [currentTrack.id]: prev[currentTrack.id]?.filter((b) => b.id !== bookmarkId) || [],
+    }));
   };
 
   const formatTime = (time: number) => {
@@ -261,6 +291,67 @@ export default function Home() {
           />
         </div>
 
+        {/* Bookmark Controls */}
+        <div className="w-full">
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              onClick={handleAddBookmark}
+              disabled={!currentTrack || duration === 0}
+              className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Add bookmark"
+            >
+              <svg className="w-5 h-5 text-zinc-900 dark:text-zinc-100" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M17 3H7c-1.1 0-1.99.9-1.99 2L5 21l7-3 7 3V5c0-1.1-.9-2-2-2zm0 15l-5-2.18L7 18V5h10v13z" />
+              </svg>
+            </button>
+            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Bookmarks</span>
+          </div>
+
+          {/* Bookmarks List */}
+          {bookmarks.length > 0 && (
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {bookmarks.map((bookmark) => (
+                <div
+                  key={bookmark.id}
+                  className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors group"
+                >
+                  <button
+                    onClick={() => handleJumpToBookmark(bookmark.timestamp)}
+                    className="flex items-center gap-3 flex-1 text-left"
+                  >
+                    <svg className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" />
+                    </svg>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                        {bookmark.name}
+                      </span>
+                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                        {formatTime(bookmark.timestamp)}
+                      </span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={() => handleDeleteBookmark(bookmark.id)}
+                    className="opacity-0 group-hover:opacity-100 p-2 text-zinc-500 hover:text-red-500 transition-opacity"
+                    aria-label="Delete bookmark"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {bookmarks.length === 0 && currentTrack && (
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">
+              No bookmarks yet. Click the bookmark icon to add one.
+            </p>
+          )}
+        </div>
+
         {/* Upload Section */}
         <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
           <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
@@ -269,6 +360,14 @@ export default function Home() {
           <AudioUploader onUploadComplete={handleUploadComplete} />
         </div>
       </main>
+
+      {/* Bookmark Modal */}
+      <BookmarkModal
+        isOpen={isBookmarkModalOpen}
+        onClose={() => setIsBookmarkModalOpen(false)}
+        onSave={handleSaveBookmark}
+        currentTime={currentTime}
+      />
     </div>
   );
 }
