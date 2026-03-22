@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Test</title>
+</head>
+<body>
+    <h1>Audio Player Test</h1>
+    
+    <h2>Test 1: Local MP3 file</h2>
+    <audio id="audio1" controls>
+        <source src="/audio/sample1.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <p>Duration: <span id="duration1">Loading...</span></p>
+    
+    <h2>Test 2: Uploaded file</h2>
+    <audio id="audio2" controls>
+        <source src="/uploads/b09d1a2e-c604-409c-b4a3-ee874e02faff.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <p>Duration: <span id="duration2">Loading...</span></p>
+
+    <script>
+        const audio1 = document.getElementById('audio1');
+        const audio2 = document.getElementById('audio2');
+        
+        audio1.addEventListener('loadedmetadata', () => {
+            console.log('Audio 1 metadata loaded, duration:', audio1.duration);
+            document.getElementById('duration1').textContent = audio1.duration;
+        });
+        
+        audio1.addEventListener('error', (e) => {
+            console.error('Audio 1 error:', e.target.error);
+            document.getElementById('duration1').textContent = 'Error';
+        });
+        
+        audio2.addEventListener('loadedmetadata', () => {
+            console.log('Audio 2 metadata loaded, duration:', audio2.duration);
+            document.getElementById('duration2').textContent = audio2.duration;
+        });
+        
+        audio2.addEventListener('error', (e) => {
+            console.error('Audio 2 error:', e.target.error);
+            document.getElementById('duration2').textContent = 'Error';
+        });
+    </script>
+</body>
+</html>
