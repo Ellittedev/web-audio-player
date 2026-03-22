@@ -10,27 +10,9 @@ interface CustomTrack {
   duration?: number;
 }
 
-const SAMPLE_TRACKS: CustomTrack[] = [
-  {
-    id: "1",
-    title: "Example Track 1",
-    src: "/audio/sample1.mp3",
-  },
-  {
-    id: "2",
-    title: "Example Track 2",
-    src: "/audio/sample2.mp3",
-  },
-  {
-    id: "3",
-    title: "Example Track 3",
-    src: "/audio/sample3.mp3",
-  },
-];
-
 export default function Home() {
   const [customTracks, setCustomTracks] = useState<CustomTrack[]>([]);
-  const tracks = [...SAMPLE_TRACKS, ...customTracks];
+  const tracks = customTracks;
   
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -41,7 +23,7 @@ export default function Home() {
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const currentTrack = tracks[currentTrackIndex];
+  const currentTrack = tracks.length > 0 ? tracks[currentTrackIndex] : null;
 
   useEffect(() => {
     if (audioRef.current) {
@@ -70,7 +52,6 @@ export default function Home() {
       src: audioFile.url,
     };
     setCustomTracks((prev) => [...prev, newTrack]);
-    setCurrentTrackIndex(SAMPLE_TRACKS.length + customTracks.length);
   };
 
   const handleTimeUpdate = () => {
@@ -165,18 +146,26 @@ export default function Home() {
       <main className="flex flex-col w-full max-w-md flex-col items-center gap-8 py-32 px-6 bg-white dark:bg-black sm:px-12 shadow-lg rounded-xl">
         {/* Track Info */}
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-            {currentTrack.title}
-          </h2>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Track {currentTrackIndex + 1} of {tracks.length}
-          </p>
+          {currentTrack ? (
+            <>
+              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+                {currentTrack.title}
+              </h2>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                Track {currentTrackIndex + 1} of {tracks.length}
+              </p>
+            </>
+          ) : (
+            <p className="text-zinc-500 dark:text-zinc-400 mt-2">
+              No track selected. Upload an audio file to start playing.
+            </p>
+          )}
         </div>
 
         {/* Audio Element */}
         <audio
           ref={audioRef}
-          src={currentTrack.src}
+          src={currentTrack?.src}
           onTimeUpdate={handleTimeUpdate}
           onEnded={nextTrack}
           onLoadedMetadata={handleLoadedMetadata}
