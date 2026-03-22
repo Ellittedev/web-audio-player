@@ -427,7 +427,7 @@ export default function Home() {
             step="0.1"
             value={currentTime}
             onChange={handleSeek}
-            disabled={!currentTrack || duration === 0}
+            disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
             className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-zinc-900 dark:accent-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <span>{formatTime(duration)}</span>
@@ -525,7 +525,7 @@ export default function Home() {
           <div className="flex items-center gap-3 mb-3">
             <button
               onClick={handleAddBookmark}
-              disabled={!currentTrack || duration === 0}
+              disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
               className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Add bookmark"
             >

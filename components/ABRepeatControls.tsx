@@ -76,7 +76,7 @@ export default function ABRepeatControls({
     return (
       <button
         onClick={() => onStartABCreation(currentTime, 'A')}
-        disabled={duration === 0}
+        disabled={duration ? (duration === 0) : false}
         className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-800/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-green-500"
         aria-label="Set A point to start loop creation"
       >
