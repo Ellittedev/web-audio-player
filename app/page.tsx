@@ -427,7 +427,7 @@ export default function Home() {
             step="0.1"
             value={currentTime}
             onChange={handleSeek}
-            disabled={duration > 0 ? undefined : true}
+            disabled={!currentTrack || duration === 0}
             className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-zinc-900 dark:accent-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <span>{formatTime(duration)}</span>
