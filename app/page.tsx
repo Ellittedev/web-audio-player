@@ -36,6 +36,48 @@ export default function Home() {
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
+  // Load tracks from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedTracks = localStorage.getItem('audioPlayerTracks');
+      if (storedTracks) {
+        setCustomTracks(JSON.parse(storedTracks));
+      }
+    } catch (error) {
+      console.error('Failed to load tracks from localStorage:', error);
+    }
+  }, []);
+
+  // Save tracks to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('audioPlayerTracks', JSON.stringify(customTracks));
+    } catch (error) {
+      console.error('Failed to save tracks to localStorage:', error);
+    }
+  }, [customTracks]);
+
+  // Load bookmarks from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedBookmarks = localStorage.getItem('audioPlayerBookmarks');
+      if (storedBookmarks) {
+        setTrackBookmarks(JSON.parse(storedBookmarks));
+      }
+    } catch (error) {
+      console.error('Failed to load bookmarks from localStorage:', error);
+    }
+  }, []);
+
+  // Save bookmarks to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('audioPlayerBookmarks', JSON.stringify(trackBookmarks));
+    } catch (error) {
+      console.error('Failed to save bookmarks to localStorage:', error);
+    }
+  }, [trackBookmarks]);
+
   const currentTrack = tracks.length > 0 ? tracks[currentTrackIndex] : null;
 
   // Get bookmarks for current track
