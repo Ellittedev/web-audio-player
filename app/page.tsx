@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import AudioUploader from "@/components/AudioUploader";
 import BookmarkModal from "@/components/BookmarkModal";
+import ABLoopModal from "@/components/ABLoopModal";
+import ABRepeatControls from "@/components/ABRepeatControls";
 
 interface CustomTrack {
   id: string;
@@ -15,6 +17,14 @@ interface Bookmark {
   id: string;
   name: string;
   timestamp: number;
+  createdAt: number;
+}
+
+interface ABLoop {
+  id: string;
+  name: string;
+  aPoint: number;
+  bPoint: number;
   createdAt: number;
 }
 
@@ -32,7 +42,16 @@ export default function Home() {
   // Bookmarks: map of trackId -> bookmarks array
   const [trackBookmarks, setTrackBookmarks] = useState<Record<string, Bookmark[]>>({});
 
+  // AB Loops: map of trackId -> loops array
+  const [trackLoops, setTrackLoops] = useState<Record<string, ABLoop[]>>({});
+  const [activeLoopId, setActiveLoopId] = useState<string | null>(null);
+
   const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
+  const [isABLoopModalOpen, setIsABLoopModalOpen] = useState(false);
+
+  // AB Loop creation state: 'idle' or 'waiting_for_b' (after A is set)
+  const [abCreationState, setAbCreationState] = useState<'idle' | 'waiting_for_b'>('idle');
+  const [pendingAPoint, setPendingAPoint] = useState<number>(0);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -78,10 +97,55 @@ export default function Home() {
     }
   }, [trackBookmarks]);
 
+  // Load AB loops from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedLoops = localStorage.getItem('audioPlayerABLoops');
+      if (storedLoops) {
+        setTrackLoops(JSON.parse(storedLoops));
+      }
+    } catch (error) {
+      console.error('Failed to load AB loops from localStorage:', error);
+    }
+  }, []);
+
+  // Save AB loops to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('audioPlayerABLoops', JSON.stringify(trackLoops));
+    } catch (error) {
+      console.error('Failed to save AB loops to localStorage:', error);
+    }
+  }, [trackLoops]);
+
+  // Load active loop from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedActiveLoop = localStorage.getItem('audioPlayerActiveLoop');
+      if (storedActiveLoop) {
+        setActiveLoopId(JSON.parse(storedActiveLoop));
+      }
+    } catch (error) {
+      console.error('Failed to load active loop from localStorage:', error);
+    }
+  }, []);
+
+  // Save active loop to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('audioPlayerActiveLoop', JSON.stringify(activeLoopId));
+    } catch (error) {
+      console.error('Failed to save active loop to localStorage:', error);
+    }
+  }, [activeLoopId]);
+
   const currentTrack = tracks.length > 0 ? tracks[currentTrackIndex] : null;
 
   // Get bookmarks for current track
   const bookmarks = currentTrack ? trackBookmarks[currentTrack.id] || [] : [];
+
+  // Get AB loops for current track
+  const loops = currentTrack ? trackLoops[currentTrack.id] || [] : [];
 
   const handleUploadComplete = (audioFile: { name: string; url: string; id: string }) => {
     const newTrack: CustomTrack = {
@@ -209,12 +273,112 @@ export default function Home() {
     }));
   };
 
+  // AB Loop handlers
+  const handleStartABCreation = (time: number, pointType: 'A' | 'B') => {
+    if (pointType === 'A') {
+      setPendingAPoint(time);
+      setAbCreationState('waiting_for_b');
+    } else {
+      // B point clicked - create loop
+      const aPoint = pendingAPoint;
+      const bPoint = time;
+
+      if (bPoint <= aPoint) {
+        alert('B point must be after A point. Please try again.');
+        setAbCreationState('idle');
+        return;
+      }
+
+      // Generate default name: "Loop from A to B"
+      const defaultName = `Loop from ${formatTime(aPoint)} to ${formatTime(bPoint)}`;
+      setIsABLoopModalOpen(true);
+    }
+  };
+
+  const handleSaveABLoop = (name: string, aPoint: number, bPoint: number) => {
+    if (!currentTrack) return;
+
+    // Use the pending A point and B point from the button click
+    const finalAPoint = pendingAPoint;
+    const finalBPoint = currentTime;
+
+    const newLoop: ABLoop = {
+      id: crypto.randomUUID(),
+      name,
+      aPoint: finalAPoint,
+      bPoint: finalBPoint,
+      createdAt: Date.now(),
+    };
+    setTrackLoops((prev) => ({
+      ...prev,
+      [currentTrack.id]: [...(prev[currentTrack.id] || []), newLoop],
+    }));
+
+    // Reset creation state
+    setAbCreationState('idle');
+    setPendingAPoint(0);
+  };
+
+  const handleDeleteABLoop = (loopId: string) => {
+    if (!currentTrack) return;
+    setTrackLoops((prev) => ({
+      ...prev,
+      [currentTrack.id]: prev[currentTrack.id]?.filter((l) => l.id !== loopId) || [],
+    }));
+    // If deleting the active loop, deactivate it
+    if (activeLoopId === loopId) {
+      setActiveLoopId(null);
+    }
+  };
+
+  const handleEditABLoop = (loopId: string, aPoint: number, bPoint: number) => {
+    if (!currentTrack) return;
+    setTrackLoops((prev) => ({
+      ...prev,
+      [currentTrack.id]: prev[currentTrack.id]?.map((l) =>
+        l.id === loopId ? { ...l, aPoint, bPoint } : l
+      ) || [],
+    }));
+  };
+
+  const handleToggleABLoop = (loopId: string | null) => {
+    setActiveLoopId(loopId);
+  };
+
   const formatTime = (time: number) => {
     if (isNaN(time) || !isFinite(time)) return "0:00";
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
+
+  // AB Loop playback logic
+  useEffect(() => {
+    if (!audioRef.current || !activeLoopId || !isPlaying) return;
+
+    const loop = loops.find((l) => l.id === activeLoopId);
+    if (!loop) {
+      setActiveLoopId(null);
+      return;
+    }
+
+    const handleTimeUpdate = () => {
+      if (audioRef.current) {
+        const currentTime = audioRef.current.currentTime;
+        
+        // Check if we've reached B point, loop back to A
+        if (currentTime >= loop.bPoint) {
+          audioRef.current.currentTime = loop.aPoint;
+          setCurrentTime(loop.aPoint);
+        }
+      }
+    };
+
+    audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
+    return () => {
+      audioRef.current?.removeEventListener('timeupdate', handleTimeUpdate);
+    };
+  }, [activeLoopId, loops, isPlaying]);
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
@@ -336,6 +500,26 @@ export default function Home() {
           />
         </div>
 
+        {/* AB Repeat Loops Section */}
+        <ABRepeatControls
+          currentTime={currentTime}
+          duration={duration}
+          isPlaying={isPlaying}
+          onSeek={(time) => {
+            if (audioRef.current && !isNaN(time)) {
+              audioRef.current.currentTime = time;
+              setCurrentTime(time);
+            }
+          }}
+          onToggleLoop={handleToggleABLoop}
+          activeLoopId={activeLoopId}
+          loops={loops}
+          onStartABCreation={handleStartABCreation}
+          abCreationState={abCreationState}
+          onDeleteLoop={handleDeleteABLoop}
+          onEditLoop={handleEditABLoop}
+        />
+
         {/* Bookmark Controls */}
         <div className="w-full">
           <div className="flex items-center gap-3 mb-3">
@@ -412,6 +596,14 @@ export default function Home() {
         onClose={() => setIsBookmarkModalOpen(false)}
         onSave={handleSaveBookmark}
         bookmarkTimestamp={bookmarkTimestamp}
+      />
+
+      {/* AB Loop Modal */}
+      <ABLoopModal
+        isOpen={isABLoopModalOpen}
+        onClose={() => setIsABLoopModalOpen(false)}
+        onSave={handleSaveABLoop}
+        initialName={`Loop from ${formatTime(pendingAPoint)} to ${formatTime(currentTime)}`}
       />
     </div>
   );
