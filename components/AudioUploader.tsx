@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { storeAudio, type StoredAudio } from "@/lib/storage";
 
 interface AudioFile {
   name: string;
@@ -18,6 +19,16 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Track blob URLs to revoke them later
+  const blobUrls = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    return () => {
+      // Clean up all blob URLs when component unmounts
+      blobUrls.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragging(true);
@@ -27,7 +38,7 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
     setIsDragging(false);
   };
 
-  const processFile = useCallback((file: File) => {
+  const processFile = useCallback(async (file: File) => {
     // Validate file type
     const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"];
     if (!validTypes.includes(file.type)) {
@@ -46,8 +57,33 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
     setError(null);
 
     try {
-      const url = URL.createObjectURL(file);
       const id = crypto.randomUUID();
+
+      // Convert file to base64 for storage
+      const reader = new FileReader();
+      const dataUrlPromise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = () => reject(new Error("Failed to read file"));
+        reader.readAsDataURL(file);
+      });
+
+      const dataUrl = await dataUrlPromise;
+
+      // Store in IndexedDB for persistence across page reloads
+      const storedAudio: StoredAudio = {
+        id,
+        name: file.name,
+        dataUrl,
+        size: file.size,
+        type: file.type,
+      };
+      await storeAudio(storedAudio);
+
+      // Create blob URL from the data URL for playback
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      blobUrls.current.add(url);
 
       onUploadComplete({
         id,
