@@ -66,6 +66,69 @@ export default function Home() {
     };
   }, []);
 
+  // Load bookmarks from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedBookmarks = localStorage.getItem('audioPlayerBookmarks');
+      if (storedBookmarks) {
+        setTrackBookmarks(JSON.parse(storedBookmarks));
+      }
+    } catch (error) {
+      console.error('Failed to load bookmarks from localStorage:', error);
+    }
+  }, []);
+
+  // Save bookmarks to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('audioPlayerBookmarks', JSON.stringify(trackBookmarks));
+    } catch (error) {
+      console.error('Failed to save bookmarks to localStorage:', error);
+    }
+  }, [trackBookmarks]);
+
+  // Load AB loops from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedLoops = localStorage.getItem('audioPlayerABLoops');
+      if (storedLoops) {
+        setTrackLoops(JSON.parse(storedLoops));
+      }
+    } catch (error) {
+      console.error('Failed to load AB loops from localStorage:', error);
+    }
+  }, []);
+
+  // Save AB loops to localStorage whenever they change
+  useEffect(() => {
+    try {
+      localStorage.setItem('audioPlayerABLoops', JSON.stringify(trackLoops));
+    } catch (error) {
+      console.error('Failed to save AB loops to localStorage:', error);
+    }
+  }, [trackLoops]);
+
+  // Load active loop from localStorage on mount
+  useEffect(() => {
+    try {
+      const storedActiveLoop = localStorage.getItem('audioPlayerActiveLoop');
+      if (storedActiveLoop) {
+        setActiveLoopId(JSON.parse(storedActiveLoop));
+      }
+    } catch (error) {
+      console.error('Failed to load active loop from localStorage:', error);
+    }
+  }, []);
+
+  // Save active loop to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('audioPlayerActiveLoop', JSON.stringify(activeLoopId));
+    } catch (error) {
+      console.error('Failed to save active loop to localStorage:', error);
+    }
+  }, [activeLoopId]);
+
   // Load tracks from IndexedDB on mount
   const loadTracks = useCallback(async () => {
     try {
