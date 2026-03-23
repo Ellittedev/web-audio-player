@@ -14,7 +14,7 @@ interface AudioUploaderProps {
 
 export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -27,7 +27,7 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
     setIsDragging(false);
   };
 
-  const processFile = async (file: File) => {
+  const processFile = useCallback((file: File) => {
     // Validate file type
     const validTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg"];
     if (!validTypes.includes(file.type)) {
@@ -42,36 +42,24 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
       return;
     }
 
-    setUploading(true);
+    setProcessing(true);
     setError(null);
 
     try {
-      const formData = new FormData();
-      formData.append("audio", file);
+      const url = URL.createObjectURL(file);
+      const id = crypto.randomUUID();
 
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Upload failed");
-      }
-
-      const result = await response.json();
-      
       onUploadComplete({
-        id: result.filename,
+        id,
         name: file.name,
-        url: result.url,
+        url,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to upload file");
+      setError(err instanceof Error ? err.message : "Failed to process file");
     } finally {
-      setUploading(false);
+      setProcessing(false);
     }
-  };
+  }, [onUploadComplete]);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
@@ -104,11 +92,11 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
         className={`
           border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
           transition-colors duration-200
-          ${isDragging 
-            ? "border-zinc-400 bg-zinc-100 dark:bg-zinc-800" 
+          ${isDragging
+            ? "border-zinc-400 bg-zinc-100 dark:bg-zinc-800"
             : "border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600"
           }
-          ${uploading ? "opacity-50 cursor-not-allowed" : ""}
+          ${processing ? "opacity-50 cursor-not-allowed" : ""}
         `}
       >
         <input
@@ -117,16 +105,16 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
           accept="audio/*"
           onChange={handleFileChange}
           className="hidden"
-          disabled={uploading}
+          disabled={processing}
         />
 
-        {uploading ? (
+        {processing ? (
           <div className="text-zinc-600 dark:text-zinc-400">
             <svg className="w-8 h-8 mx-auto mb-2 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
             </svg>
-            <p>Uploading...</p>
+            <p>Processing...</p>
           </div>
         ) : (
           <>
