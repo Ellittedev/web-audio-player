@@ -5,6 +5,8 @@ import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Tras
 import AudioUploader from "@/components/AudioUploader";
 import BookmarkModal from "@/components/BookmarkModal";
 import ABLoopModal from "@/components/ABLoopModal";
+import EditBookmarkModal from "@/components/EditBookmarkModal";
+import EditABLoopModal from "@/components/EditABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
 import { getAllAudios, deleteAudio, type StoredAudio } from "@/lib/storage";
 
@@ -50,6 +52,12 @@ export default function Home() {
 
   const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
   const [isABLoopModalOpen, setIsABLoopModalOpen] = useState(false);
+
+  // Edit modal states
+  const [isEditBookmarkModalOpen, setIsEditBookmarkModalOpen] = useState(false);
+  const [isEditABLoopModalOpen, setIsEditABLoopModalOpen] = useState(false);
+  const [editingBookmarkId, setEditingBookmarkId] = useState<string | null>(null);
+  const [editingLoopId, setEditingLoopId] = useState<string | null>(null);
 
   // AB Loop creation state: 'idle' or 'waiting_for_b' (after A is set)
   const [abCreationState, setAbCreationState] = useState<'idle' | 'waiting_for_b'>('idle');
@@ -308,6 +316,33 @@ export default function Home() {
     }));
   };
 
+  const handleEditBookmarkClick = (bookmarkId: string, name: string, timestamp: number) => {
+    setEditingBookmarkId(bookmarkId);
+    // Store current values temporarily for editing
+    setEditingBookmarkValues(name, timestamp);
+    setIsEditBookmarkModalOpen(true);
+  };
+
+  const [editingBookmarkName, setEditingBookmarkName] = useState("");
+  const [editingBookmarkTimestamp, setEditingBookmarkTimestamp] = useState(0);
+
+  const setEditingBookmarkValues = (name: string, timestamp: number) => {
+    setEditingBookmarkName(name);
+    setEditingBookmarkTimestamp(timestamp);
+  };
+
+  const handleSaveEditBookmark = (name: string, timestamp: number) => {
+    if (!currentTrack || !editingBookmarkId) return;
+    setTrackBookmarks((prev) => ({
+      ...prev,
+      [currentTrack.id]: prev[currentTrack.id]?.map((b) =>
+        b.id === editingBookmarkId ? { ...b, name, timestamp } : b
+      ) || [],
+    }));
+    setIsEditBookmarkModalOpen(false);
+    setEditingBookmarkId(null);
+  };
+
   // AB Loop handlers
   const handleStartABCreation = (time: number, pointType: 'A' | 'B') => {
     if (pointType === 'A') {
@@ -397,6 +432,34 @@ export default function Home() {
         l.id === loopId ? { ...l, aPoint, bPoint } : l
       ) || [],
     }));
+  };
+
+  const handleEditABLoopClick = (loopId: string, name: string, aPoint: number, bPoint: number) => {
+    setEditingLoopId(loopId);
+    setEditingABLoopValues(name, aPoint, bPoint);
+    setIsEditABLoopModalOpen(true);
+  };
+
+  const [editingABLoopName, setEditingABLoopName] = useState("");
+  const [editingABLoopA, setEditingABLoopA] = useState(0);
+  const [editingABLoopB, setEditingABLoopB] = useState(0);
+
+  const setEditingABLoopValues = (name: string, aPoint: number, bPoint: number) => {
+    setEditingABLoopName(name);
+    setEditingABLoopA(aPoint);
+    setEditingABLoopB(bPoint);
+  };
+
+  const handleSaveEditABLoop = (name: string, aPoint: number, bPoint: number) => {
+    if (!currentTrack || !editingLoopId) return;
+    setTrackLoops((prev) => ({
+      ...prev,
+      [currentTrack.id]: prev[currentTrack.id]?.map((l) =>
+        l.id === editingLoopId ? { ...l, name, aPoint, bPoint } : l
+      ) || [],
+    }));
+    setIsEditABLoopModalOpen(false);
+    setEditingLoopId(null);
   };
 
   const handleToggleABLoop = (loopId: string | null) => {
@@ -645,6 +708,7 @@ export default function Home() {
           onToggleLoop={handleToggleABLoop}
           activeLoopId={activeLoopId}
           loops={loops}
+          onEditLoopClick={handleEditABLoopClick}
           onDeleteLoop={handleDeleteABLoop}
           onEditLoop={handleEditABLoop}
         />
@@ -675,13 +739,22 @@ export default function Home() {
                       </span>
                     </div>
                   </button>
-                  <button
-                    onClick={() => handleDeleteBookmark(bookmark.id)}
-                    className="opacity-0 group-hover:opacity-100 p-2 text-zinc-500 hover:text-red-500 transition-opacity"
-                    aria-label="Delete bookmark"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
+                      className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
+                      aria-label="Edit bookmark"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteBookmark(bookmark.id)}
+                      className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                      aria-label="Delete bookmark"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -711,12 +784,37 @@ export default function Home() {
         bookmarkTimestamp={bookmarkTimestamp}
       />
 
+      {/* Edit Bookmark Modal */}
+      <EditBookmarkModal
+        isOpen={isEditBookmarkModalOpen}
+        onClose={() => {
+          setIsEditBookmarkModalOpen(false);
+          setEditingBookmarkId(null);
+        }}
+        onSave={handleSaveEditBookmark}
+        bookmarkName={editingBookmarkName}
+        bookmarkTimestamp={editingBookmarkTimestamp}
+      />
+
       {/* AB Loop Modal */}
       <ABLoopModal
         isOpen={isABLoopModalOpen}
         onClose={() => setIsABLoopModalOpen(false)}
         onSave={handleSaveABLoop}
         initialName={`Loop from ${formatTime(pendingAPoint)} to ${formatTime(currentTime)}`}
+      />
+
+      {/* Edit AB Loop Modal */}
+      <EditABLoopModal
+        isOpen={isEditABLoopModalOpen}
+        onClose={() => {
+          setIsEditABLoopModalOpen(false);
+          setEditingLoopId(null);
+        }}
+        onSave={handleSaveEditABLoop}
+        loopName={editingABLoopName}
+        aPoint={editingABLoopA}
+        bPoint={editingABLoopB}
       />
     </div>
   );

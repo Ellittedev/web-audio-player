@@ -19,6 +19,7 @@ interface ABRepeatControlsProps {
   onToggleLoop: (loopId: string | null) => void;
   activeLoopId: string | null;
   loops: ABLoop[];
+  onEditLoopClick: (loopId: string, name: string, aPoint: number, bPoint: number) => void;
   onDeleteLoop: (loopId: string) => void;
   onEditLoop: (loopId: string, aPoint: number, bPoint: number) => void;
 }
@@ -31,6 +32,7 @@ export default function ABRepeatControls({
   onToggleLoop,
   activeLoopId,
   loops,
+  onEditLoopClick,
   onDeleteLoop,
   onEditLoop,
 }: ABRepeatControlsProps) {
@@ -134,7 +136,7 @@ export default function ABRepeatControls({
                   )}
                 </button>
                 <button
-                  onClick={() => onEditLoop(loop.id, loop.aPoint, loop.bPoint)}
+                  onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
                   className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
                   title="Edit loop"
                 >
