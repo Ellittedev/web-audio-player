@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { Play, Pause, Edit2, Trash2 } from "lucide-react";
 
 interface ABLoop {
   id: string;
@@ -165,31 +166,25 @@ export default function ABRepeatControls({
                   }`}
                   title={activeLoopId === loop.id ? "Stop this loop" : "Play this loop"}
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    {activeLoopId === loop.id ? (
-                      <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
-                    ) : (
-                      <path d="M8 5v14l11-7z" />
-                    )}
-                  </svg>
+                  {activeLoopId === loop.id ? (
+                    <Pause className="w-4 h-4" />
+                  ) : (
+                    <Play className="w-4 h-4" />
+                  )}
                 </button>
                 <button
                   onClick={() => onEditLoop(loop.id, loop.aPoint, loop.bPoint)}
                   className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
                   title="Edit loop"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z" />
-                  </svg>
+                  <Edit2 className="w-4 h-4" />
                 </button>
                 <button
                   onClick={() => onDeleteLoop(loop.id)}
                   className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
                   title="Delete loop"
                 >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                  </svg>
+                  <Trash2 className="w-4 h-4" />
                 </button>
               </div>
             </div>

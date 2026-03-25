@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { UploadCloud } from "lucide-react";
 import { storeAudio, type StoredAudio } from "@/lib/storage";
 
 interface AudioFile {
@@ -154,9 +155,7 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
           </div>
         ) : (
           <>
-            <svg className="w-12 h-12 mx-auto mb-3 text-zinc-400 dark:text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-            </svg>
+            <UploadCloud className="w-12 h-12 mx-auto mb-3 text-zinc-400 dark:text-zinc-500" />
             <p className="text-zinc-700 dark:text-zinc-300 font-medium">
               Drop audio file here or click to browse
             </p>
