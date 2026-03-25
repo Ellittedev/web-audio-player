@@ -151,22 +151,33 @@ export default function Home() {
   const loadTracks = useCallback(async () => {
     try {
       const storedAudios = await getAllAudios();
-      
+
       // Convert stored audio data to blob URLs
       const loadedTracks: CustomTrack[] = [];
       for (const storedAudio of storedAudios) {
-        const response = await fetch(storedAudio.dataUrl);
-        const blob = await response.blob();
+        // The dataUrl is a base64 data URL, convert it to a blob URL
+        const [meta, base64Data] = storedAudio.dataUrl.split(',');
+        const mimeType = meta.match(/:(.*?);/)?.[1] || 'audio/mpeg';
+        
+        // Convert base64 to blob
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        
         const url = URL.createObjectURL(blob);
         blobUrls.current.set(storedAudio.id, url);
-        
+
         loadedTracks.push({
           id: storedAudio.id,
           title: storedAudio.name.replace(/\.[^/.]+$/, ""),
           src: url,
         });
       }
-      
+
       setCustomTracks(loadedTracks);
     } catch (error) {
       console.error('Failed to load tracks from IndexedDB:', error);
@@ -568,8 +579,15 @@ export default function Home() {
           const audioFile = content.file(audioInfo.name);
           if (audioFile) {
             const blob = await audioFile.async('blob');
-            const dataUrl = URL.createObjectURL(blob);
             
+            // Convert blob to base64 data URL for storage in IndexedDB
+            const reader = new FileReader();
+            const dataUrl = await new Promise<string>((resolve, reject) => {
+              reader.onload = () => resolve(reader.result as string);
+              reader.onerror = () => reject(new Error("Failed to read file"));
+              reader.readAsDataURL(blob);
+            });
+
             const newAudio: StoredAudio = {
               id: audioInfo.id,
               name: audioInfo.name,
@@ -577,7 +595,7 @@ export default function Home() {
               size: audioInfo.size,
               type: audioInfo.type
             };
-            
+
             await storeAudio(newAudio);
             importedCount++;
           }
@@ -588,9 +606,12 @@ export default function Home() {
       const newBookmarks: Record<string, Bookmark[]> = {};
       const newLoops: Record<string, ABLoop[]> = {};
 
+      // Get all audios after import to match bookmarks/loops with correct audio IDs
+      const allAudiosAfterImport = await getAllAudios();
+
       for (const bookmark of config.bookmarks || []) {
         if (bookmark._audioFile) {
-          const audio = storedAudios.find(a => a.name === bookmark._audioFile);
+          const audio = allAudiosAfterImport.find(a => a.name === bookmark._audioFile);
           if (audio && !newBookmarks[audio.id]) {
             newBookmarks[audio.id] = [];
           }
@@ -607,7 +628,7 @@ export default function Home() {
 
       for (const loop of config.loops || []) {
         if (loop._audioFile) {
-          const audio = storedAudios.find(a => a.name === loop._audioFile);
+          const audio = allAudiosAfterImport.find(a => a.name === loop._audioFile);
           if (audio && !newLoops[audio.id]) {
             newLoops[audio.id] = [];
           }
@@ -645,6 +666,32 @@ export default function Home() {
           ])
         )
       }));
+
+      // Reload tracks from IndexedDB to include newly imported audios
+      const updatedAudios = await getAllAudios();
+      const updatedTracks: CustomTrack[] = [];
+      for (const storedAudio of updatedAudios) {
+        const [meta, base64Data] = storedAudio.dataUrl.split(',');
+        const mimeType = meta.match(/:(.*?);/)?.[1] || 'audio/mpeg';
+        
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: mimeType });
+        
+        const url = URL.createObjectURL(blob);
+        blobUrls.current.set(storedAudio.id, url);
+
+        updatedTracks.push({
+          id: storedAudio.id,
+          title: storedAudio.name.replace(/\.[^/.]+$/, ""),
+          src: url,
+        });
+      }
+      setCustomTracks(updatedTracks);
 
       // Clean up blob URLs for imported audios
       for (const audio of config.audios) {
