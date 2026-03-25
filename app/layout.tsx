@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Audio Player",
   description: "An audio player application",
+  icons: {
+    icon: "/icon.svg",
+  },
 };
 
 export default function RootLayout({
