@@ -201,7 +201,6 @@ export default function Home() {
   const handleLoadedMetadata = () => {
     if (audioRef.current) {
       const dur = audioRef.current.duration;
-      console.log("handleLoadedMetadata called, duration:", dur);
       setDuration(dur);
       setCurrentTime(0);
 
@@ -532,19 +531,17 @@ export default function Home() {
               {tracks.map((track, index) => (
                 <div
                   key={track.id}
-                  className={`flex items-center justify-between p-3 rounded-lg transition-colors group ${
+                  onClick={() => {
+                    setCurrentTrackIndex(index);
+                    setCurrentTime(0);
+                  }}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-colors group cursor-pointer ${
                     index === currentTrackIndex
                       ? 'bg-zinc-200 dark:bg-zinc-700'
                       : 'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700'
                   }`}
                 >
-                  <button
-                    onClick={() => {
-                      setCurrentTrackIndex(index);
-                      setCurrentTime(0);
-                    }}
-                    className="flex items-center gap-3 flex-1 text-left"
-                  >
+                  <div className="flex items-center gap-3 flex-1">
                     <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 w-6">
                       {index + 1}
                     </span>
@@ -553,7 +550,7 @@ export default function Home() {
                         {track.title}
                       </span>
                     </div>
-                  </button>
+                  </div>
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
