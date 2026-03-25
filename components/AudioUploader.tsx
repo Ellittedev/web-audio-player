@@ -40,24 +40,27 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
   };
 
   const processFile = useCallback(async (file: File) => {
-    // Validate file type - support various audio formats including WAV variants
+    // Validate file type - support various audio formats including MP4/AAC variants
     const validTypes = [
-      "audio/mpeg",
-      "audio/mp3",
-      "audio/wav",
-      "audio/x-wav",
-      "audio/ogg",
-      "audio/webm"
+      "audio/mpeg",      // MP3
+      "audio/mp3",       // MP3 alternative
+      "audio/wav",       // WAV
+      "audio/x-wav",     // WAV variant
+      "audio/ogg",       // OGG
+      "audio/webm",      // WEBM
+      "audio/mp4",       // M4A/AAC
+      "audio/m4a",       // M4A alternative
+      "audio/aac"        // AAC raw
     ];
-    
+
     // Also check file extension as fallback
-    const validExtensions = ['.mp3', '.wav', '.ogg', '.webm'];
+    const validExtensions = ['.mp3', '.wav', '.ogg', '.webm', '.m4a', '.aac'];
     const fileExtension = '.' + file.name.split('.').pop()?.toLowerCase() || '';
     const hasValidType = validTypes.includes(file.type);
     const hasValidExtension = validExtensions.some(ext => fileExtension === ext);
-    
+
     if (!hasValidType && !hasValidExtension) {
-      setError("Invalid file type. Please upload an audio file (MP3, WAV, OGG, WEBM).");
+      setError("Invalid file type. Please upload an audio file (MP3, WAV, OGG, WEBM, M4A, AAC).");
       return;
     }
 
@@ -174,7 +177,7 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
               Drop audio file here or click to browse
             </p>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-              MP3, WAV, OGG (max 50MB)
+              MP3, WAV, OGG, WEBM, M4A, AAC (max 50MB)
             </p>
           </>
         )}
