@@ -8,7 +8,7 @@ import ABLoopModal from "@/components/ABLoopModal";
 import EditBookmarkModal from "@/components/EditBookmarkModal";
 import EditABLoopModal from "@/components/EditABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
-import { getAllAudios, deleteAudio, type StoredAudio } from "@/lib/storage";
+import { getAllAudios, deleteAudio, storeAudio, type StoredAudio } from "@/lib/storage";
 import { exportConfiguration, downloadExport } from "@/lib/export";
 
 interface CustomTrack {
@@ -66,6 +66,11 @@ export default function Home() {
 
   // Export state
   const [isExporting, setIsExporting] = useState(false);
+  
+  // Configuration section state
+  const [isConfigSectionOpen, setIsConfigSectionOpen] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importMessage, setImportMessage] = useState<{ text: string; error: boolean } | null>(null);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -490,6 +495,147 @@ export default function Home() {
     }
   };
 
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    setIsImporting(true);
+    setImportMessage(null);
+
+    try {
+      // Load the zip file using JSZip
+      const jszip = await import('jszip');
+      const zip = new jszip.default();
+      const content = await zip.loadAsync(file);
+      
+      // Load meta.json
+      const metaContent = await content.file('meta.json')?.async('string');
+      if (!metaContent) {
+        throw new Error('Invalid configuration file: missing meta.json');
+      }
+
+      const config = JSON.parse(metaContent);
+      
+      // Validate structure
+      if (!config.metadata || !config.audios || !Array.isArray(config.bookmarks) && !Array.isArray(config.loops)) {
+        throw new Error('Invalid configuration file format');
+      }
+
+      // Get current audios to check what's missing
+      const storedAudios = await getAllAudios();
+
+      // Import audios
+      let importedCount = 0;
+      for (const audioInfo of config.audios) {
+        const existingAudio = storedAudios.find(a => a.id === audioInfo.id);
+        
+        if (!existingAudio) {
+          // Fetch the audio blob from the zip
+          const audioFile = content.file(audioInfo.name);
+          if (audioFile) {
+            const blob = await audioFile.async('blob');
+            const dataUrl = URL.createObjectURL(blob);
+            
+            const newAudio: StoredAudio = {
+              id: audioInfo.id,
+              name: audioInfo.name,
+              dataUrl,
+              size: audioInfo.size,
+              type: audioInfo.type
+            };
+            
+            await storeAudio(newAudio);
+            importedCount++;
+          }
+        }
+      }
+
+      // Import bookmarks and loops (associated with imported audios)
+      const newBookmarks: Record<string, Bookmark[]> = {};
+      const newLoops: Record<string, ABLoop[]> = {};
+
+      for (const bookmark of config.bookmarks || []) {
+        if (bookmark._audioFile) {
+          const audio = storedAudios.find(a => a.name === bookmark._audioFile);
+          if (audio && !newBookmarks[audio.id]) {
+            newBookmarks[audio.id] = [];
+          }
+          if (audio && newBookmarks[audio.id]) {
+            newBookmarks[audio.id].push({
+              id: bookmark.id,
+              name: bookmark.name,
+              timestamp: bookmark.timestamp,
+              createdAt: bookmark.createdAt
+            });
+          }
+        }
+      }
+
+      for (const loop of config.loops || []) {
+        if (loop._audioFile) {
+          const audio = storedAudios.find(a => a.name === loop._audioFile);
+          if (audio && !newLoops[audio.id]) {
+            newLoops[audio.id] = [];
+          }
+          if (audio && newLoops[audio.id]) {
+            newLoops[audio.id].push({
+              id: loop.id,
+              name: loop.name,
+              aPoint: loop.aPoint,
+              bPoint: loop.bPoint,
+              createdAt: loop.createdAt
+            });
+          }
+        }
+      }
+
+      // Merge with existing data
+      setTrackBookmarks(prev => ({
+        ...prev,
+        ...newBookmarks,
+        ...Object.fromEntries(
+          Object.entries(prev).map(([key, value]) => [
+            key,
+            [...value, ...(newBookmarks[key] || [])]
+          ])
+        )
+      }));
+
+      setTrackLoops(prev => ({
+        ...prev,
+        ...newLoops,
+        ...Object.fromEntries(
+          Object.entries(prev).map(([key, value]) => [
+            key,
+            [...value, ...(newLoops[key] || [])]
+          ])
+        )
+      }));
+
+      // Clean up blob URLs for imported audios
+      for (const audio of config.audios) {
+        const dataUrl = storedAudios.find(a => a.id === audio.id)?.dataUrl;
+        if (dataUrl) {
+          URL.revokeObjectURL(dataUrl);
+        }
+      }
+
+      setImportMessage({
+        text: `Successfully imported ${importedCount} new audio(s). Bookmarks and loops have been merged.`,
+        error: false
+      });
+    } catch (error) {
+      console.error('Import failed:', error);
+      setImportMessage({
+        text: 'Failed to import configuration. Please ensure the file is a valid export.',
+        error: true
+      });
+    } finally {
+      setIsImporting(false);
+      event.target.value = '';
+    }
+  };
+
   // AB Loop playback logic
   useEffect(() => {
     if (!audioRef.current || !activeLoopId || !isPlaying) return;
@@ -578,20 +724,6 @@ export default function Home() {
 
         {/* Controls */}
         <div className="flex items-center justify-between gap-2">
-          <button
-            onClick={handleExport}
-            disabled={isExporting || tracks.length === 0}
-            className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Export configuration"
-            title="Export all audios, bookmarks, and loops"
-          >
-            {isExporting ? (
-              <div className="w-6 h-6 border-2 border-zinc-900 dark:border-zinc-100 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Download className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
-            )}
-          </button>
-
           <button
             onClick={handleAddBookmark}
             disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
@@ -804,6 +936,78 @@ export default function Home() {
             Upload Your Own Audio
           </h3>
           <AudioUploader onUploadComplete={handleUploadComplete} />
+        </div>
+
+        {/* Configuration Section */}
+        <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <button
+            onClick={() => setIsConfigSectionOpen(!isConfigSectionOpen)}
+            className="flex items-center justify-between w-full text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+          >
+            <span>Configuration</span>
+            <ChevronLeft
+              className={`w-4 h-4 transition-transform ${
+                isConfigSectionOpen ? 'transform rotate-180' : ''
+              }`}
+            />
+          </button>
+
+          {isConfigSectionOpen && (
+            <div className="mt-3 space-y-3">
+              {/* Export */}
+              <button
+                onClick={handleExport}
+                disabled={isExporting || tracks.length === 0}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-700 dark:hover:bg-zinc-200 text-white dark:text-black rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isExporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white dark:border-black border-t-transparent rounded-full animate-spin" />
+                    <span>Exporting...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    <span>Download your current configuration</span>
+                  </>
+                )}
+              </button>
+
+              {/* Import */}
+              <input
+                type="file"
+                accept=".zip"
+                onChange={handleImport}
+                disabled={isImporting}
+                className="hidden"
+                id="import-config"
+              />
+              <label
+                htmlFor="import-config"
+                className={`w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 rounded-lg cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isImporting ? 'bg-zinc-100 dark:bg-zinc-800' : 'bg-transparent'
+                }`}
+              >
+                {isImporting ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-zinc-900 dark:border-zinc-100 border-t-transparent rounded-full animate-spin" />
+                    <span>Importing...</span>
+                  </>
+                ) : (
+                  <>
+                    <RotateCcw className="w-4 h-4" />
+                    <span>Upload external configuration</span>
+                  </>
+                )}
+              </label>
+
+              {importMessage && (
+                <p className={`text-sm ${importMessage.error ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                  {importMessage.text}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </main>
 
