@@ -8,7 +8,7 @@ import ABLoopModal from "@/components/ABLoopModal";
 import EditBookmarkModal from "@/components/EditBookmarkModal";
 import EditABLoopModal from "@/components/EditABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
-import { getAllAudios, deleteAudio, storeAudio, type StoredAudio } from "@/lib/storage";
+import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, type StoredAudio } from "@/lib/storage";
 import { exportConfiguration, downloadExport } from "@/lib/export";
 
 interface CustomTrack {
@@ -492,6 +492,40 @@ export default function Home() {
       alert('Failed to export configuration. Please try again.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleReset = async () => {
+    if (!confirm('Are you sure you want to reset everything? This will delete all audios, bookmarks, and loops.')) {
+      return;
+    }
+
+    try {
+      // Clear IndexedDB audio data
+      await deleteAllAudios();
+      
+      // Clear localStorage data
+      localStorage.removeItem('audioPlayerBookmarks');
+      localStorage.removeItem('audioPlayerABLoops');
+      localStorage.removeItem('audioPlayerActiveLoop');
+
+      // Clear tracks state
+      setCustomTracks([]);
+      setTrackBookmarks({});
+      setTrackLoops({});
+      setActiveLoopId(null);
+
+      // Clear blob URLs
+      blobUrls.current.forEach((url) => URL.revokeObjectURL(url));
+      blobUrls.current.clear();
+
+      // Reload to reset IndexedDB connection
+      setTimeout(() => {
+        window.location.reload();
+      }, 100);
+    } catch (error) {
+      console.error('Failed to reset:', error);
+      alert('Failed to reset. Please try again or refresh the page.');
     }
   };
 
@@ -1006,6 +1040,15 @@ export default function Home() {
                   {importMessage.text}
                 </p>
               )}
+
+              {/* Reset Button */}
+              <button
+                onClick={handleReset}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-4 h-4" />
+                <span>Reset Everything</span>
+              </button>
             </div>
           )}
         </div>
