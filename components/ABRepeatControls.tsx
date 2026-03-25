@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { Play, Pause, Edit2, Trash2, FileDown, Download } from "lucide-react";
+import SwipeableItem from "./SwipeableItem";
 
 interface ABLoop {
   id: string;
@@ -114,80 +115,125 @@ export default function ABRepeatControls({
           )}
 
           {loops.map((loop) => (
-            <div
+            <SwipeableItem
               key={loop.id}
-              className={`flex items-center justify-between p-3 rounded-lg transition-colors group ${
-                activeLoopId === loop.id
-                  ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/40 dark:to-blue-900/40 border border-purple-300 dark:border-purple-700"
-                  : "bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700"
-              }`}
+              actions={
+                <>
+                  {onExportLoop && (
+                    <button
+                      onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                      disabled={isLoopExporting}
+                      className="p-2 rounded text-white hover:bg-red-600 transition-colors disabled:opacity-50"
+                      title="Export as WAV"
+                    >
+                      <FileDown className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
+                    className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                    title={activeLoopId === loop.id ? "Stop this loop" : "Play this loop"}
+                  >
+                    {activeLoopId === loop.id ? (
+                      <Pause className="w-4 h-4" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                    className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                    title="Edit loop"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDeleteLoop(loop.id)}
+                    className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                    title="Delete loop"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </>
+              }
+              onSwipeLeft={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+              threshold={30}
             >
-              <div className="flex items-center gap-3 flex-1 min-w-0">
-                <button
-                  onClick={() => handleSeekToA(loop.aPoint)}
-                  className={`flex-shrink-0 px-2 py-1 rounded text-xs font-bold transition-colors ${
-                    activeLoopId === loop.id
-                      ? "bg-green-600 text-white"
-                      : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                  }`}
-                  title="Seek to A point"
-                >
-                  A
-                </button>
-                <div className="flex flex-col min-w-0">
-                  <span className={`text-sm font-medium truncate ${
-                    activeLoopId === loop.id ? "text-purple-900 dark:text-purple-100" : "text-zinc-900 dark:text-zinc-100"
-                  }`}>
-                    {loop.name}
-                  </span>
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                    {formatTime(loop.aPoint)} → {formatTime(loop.bPoint)}
-                  </span>
+              <div
+                className={`flex items-center justify-between p-3 rounded-lg transition-colors group h-full ${
+                  activeLoopId === loop.id
+                    ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/40 dark:to-blue-900/40 border border-purple-300 dark:border-purple-700"
+                    : "bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                }`}
+              >
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <button
+                    onClick={() => handleSeekToA(loop.aPoint)}
+                    className={`flex-shrink-0 px-2 py-1 rounded text-xs font-bold transition-colors ${
+                      activeLoopId === loop.id
+                        ? "bg-green-600 text-white"
+                        : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                    }`}
+                    title="Seek to A point"
+                  >
+                    A
+                  </button>
+                  <div className="flex flex-col min-w-0">
+                    <span className={`text-sm font-medium truncate ${
+                      activeLoopId === loop.id ? "text-purple-900 dark:text-purple-100" : "text-zinc-900 dark:text-zinc-100"
+                    }`}>
+                      {loop.name}
+                    </span>
+                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                      {formatTime(loop.aPoint)} → {formatTime(loop.bPoint)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Desktop hover actions */}
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  {onExportLoop && (
+                    <button
+                      onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                      disabled={isLoopExporting}
+                      className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-green-300 dark:hover:bg-green-900/50 hover:text-green-700 dark:hover:text-green-400 transition-colors disabled:opacity-50"
+                      title="Export as WAV"
+                    >
+                      <FileDown className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
+                    className={`p-2 rounded transition-colors ${
+                      activeLoopId === loop.id
+                        ? "bg-purple-600 text-white hover:bg-purple-700"
+                        : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                    }`}
+                    title={activeLoopId === loop.id ? "Stop this loop" : "Play this loop"}
+                  >
+                    {activeLoopId === loop.id ? (
+                      <Pause className="w-4 h-4" />
+                    ) : (
+                      <Play className="w-4 h-4" />
+                    )}
+                  </button>
+                  <button
+                    onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                    className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
+                    title="Edit loop"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => onDeleteLoop(loop.id)}
+                    className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                    title="Delete loop"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {onExportLoop && (
-                  <button
-                    onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
-                    disabled={isLoopExporting}
-                    className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-green-300 dark:hover:bg-green-900/50 hover:text-green-700 dark:hover:text-green-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    title="Export as WAV"
-                  >
-                    <FileDown className="w-4 h-4" />
-                  </button>
-                )}
-                <button
-                  onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
-                  className={`p-2 rounded transition-colors ${
-                    activeLoopId === loop.id
-                      ? "bg-purple-600 text-white hover:bg-purple-700"
-                      : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600"
-                  }`}
-                  title={activeLoopId === loop.id ? "Stop this loop" : "Play this loop"}
-                >
-                  {activeLoopId === loop.id ? (
-                    <Pause className="w-4 h-4" />
-                  ) : (
-                    <Play className="w-4 h-4" />
-                  )}
-                </button>
-                <button
-                  onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
-                  className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
-                  title="Edit loop"
-                >
-                  <Edit2 className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => onDeleteLoop(loop.id)}
-                  className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                  title="Delete loop"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
+            </SwipeableItem>
           ))}
         </div>
       )}

@@ -8,6 +8,7 @@ import ABLoopModal from "@/components/ABLoopModal";
 import EditBookmarkModal from "@/components/EditBookmarkModal";
 import EditABLoopModal from "@/components/EditABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
+import SwipeableItem from "@/components/SwipeableItem";
 import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, type StoredAudio } from "@/lib/storage";
 import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip } from "@/lib/export";
 
@@ -949,39 +950,54 @@ export default function Home() {
             </h3>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {tracks.map((track, index) => (
-                <div
+                <SwipeableItem
                   key={track.id}
-                  onClick={() => {
-                    setCurrentTrackIndex(index);
-                    setCurrentTime(0);
-                  }}
-                  className={`flex items-center justify-between p-3 rounded-lg transition-colors group cursor-pointer ${
-                    index === currentTrackIndex
-                      ? 'bg-zinc-200 dark:bg-zinc-700'
-                      : 'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700'
-                  }`}
+                  actions={
+                    <button
+                      onClick={() => handleDeleteTrack(track.id, track.src)}
+                      className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                      aria-label="Delete track"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  }
+                  onSwipeLeft={() => handleDeleteTrack(track.id, track.src)}
+                  threshold={30}
                 >
-                  <div className="flex items-center gap-3 flex-1">
-                    <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 w-6">
-                      {index + 1}
-                    </span>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
-                        {track.title}
-                      </span>
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteTrack(track.id, track.src);
+                  <div
+                    onClick={() => {
+                      setCurrentTrackIndex(index);
+                      setCurrentTime(0);
                     }}
-                    className="opacity-0 group-hover:opacity-100 p-2 text-zinc-500 hover:text-red-500 transition-opacity"
-                    aria-label="Delete track"
+                    className={`flex items-center justify-between p-3 rounded-lg transition-colors group cursor-pointer h-full ${
+                      index === currentTrackIndex
+                        ? 'bg-zinc-200 dark:bg-zinc-700'
+                        : 'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                    }`}
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 w-6">
+                        {index + 1}
+                      </span>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                          {track.title}
+                        </span>
+                      </div>
+                    </div>
+                    {/* Desktop hover actions */}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTrack(track.id, track.src);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 p-2 text-zinc-500 hover:text-red-500 transition-opacity"
+                      aria-label="Delete track"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </SwipeableItem>
               ))}
             </div>
           </div>
@@ -1017,41 +1033,65 @@ export default function Home() {
           {bookmarks.length > 0 && (
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {bookmarks.map((bookmark) => (
-                <div
+                <SwipeableItem
                   key={bookmark.id}
-                  className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors group"
+                  actions={
+                    <>
+                      <button
+                        onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
+                        className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                        aria-label="Edit bookmark"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBookmark(bookmark.id)}
+                        className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                        aria-label="Delete bookmark"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  }
+                  onSwipeLeft={() => handleDeleteBookmark(bookmark.id)}
+                  threshold={30}
                 >
-                  <button
-                    onClick={() => handleJumpToBookmark(bookmark.timestamp)}
-                    className="flex items-center gap-3 flex-1 text-left"
+                  <div
+                    className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors group h-full"
                   >
-                    <Bookmark className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
-                        {bookmark.name}
-                      </span>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {formatTime(bookmark.timestamp)}
-                      </span>
+                    <button
+                      onClick={() => handleJumpToBookmark(bookmark.timestamp)}
+                      className="flex items-center gap-3 flex-1 text-left"
+                    >
+                      <Bookmark className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                          {bookmark.name}
+                        </span>
+                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                          {formatTime(bookmark.timestamp)}
+                        </span>
+                      </div>
+                    </button>
+                    {/* Desktop hover actions */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
+                        className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
+                        aria-label="Edit bookmark"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBookmark(bookmark.id)}
+                        className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                        aria-label="Delete bookmark"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  </button>
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
-                      className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
-                      aria-label="Edit bookmark"
-                    >
-                      <Edit2 className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteBookmark(bookmark.id)}
-                      className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
-                      aria-label="Delete bookmark"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
                   </div>
-                </div>
+                </SwipeableItem>
               ))}
             </div>
           )}
