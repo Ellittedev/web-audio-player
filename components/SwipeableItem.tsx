@@ -18,9 +18,7 @@ export default function SwipeableItem({
   disabled = false,
 }: SwipeableItemProps) {
   const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [translateX, setTranslateX] = useState(0);
-  const [isSwiped, setIsSwiped] = useState(false);
-  const itemRef = useRef<HTMLDivElement>(null);
+  const [swipeProgress, setSwipeProgress] = useState(0); // 0 to 1
 
   const minSwipeDistance = threshold;
   const maxSwipe = 150;
@@ -37,33 +35,30 @@ export default function SwipeableItem({
 
     // Only allow left swipe (positive diff means moving left)
     if (diff > 0) {
-      setTranslateX(Math.min(diff, maxSwipe));
+      setSwipeProgress(Math.min(diff / maxSwipe, 1));
     } else {
-      setTranslateX(0);
+      setSwipeProgress(0);
     }
   };
 
   const onTouchEnd = () => {
     if (!touchStart || disabled) return;
 
-    // Calculate distance based on the actual translateX value
-    const distance = translateX;
+    // Calculate distance based on the actual swipe progress
+    const distance = swipeProgress * maxSwipe;
     const isLeftSwipe = distance > minSwipeDistance;
 
     if (isLeftSwipe && onSwipeLeft) {
-      setIsSwiped(true);
-      setTranslateX(maxSwipe);
+      setSwipeProgress(1);
     } else {
-      // Reset position
-      setTranslateX(0);
+      setSwipeProgress(0);
     }
 
     setTouchStart(null);
   };
 
   const handleReset = () => {
-    setTranslateX(0);
-    setIsSwiped(false);
+    setSwipeProgress(0);
   };
 
   return (
@@ -72,10 +67,10 @@ export default function SwipeableItem({
       <div
         className="absolute top-0 bottom-0 flex items-center gap-1 px-2 bg-red-500/90 dark:bg-red-600/90"
         style={{
-          left: 'calc(100% - 1px)',
+          left: '100%',
           width: `${maxSwipe}px`,
           height: '100%',
-          transform: isSwiped ? 'translateX(-100%)' : 'translateX(0)',
+          transform: `translateX(${swipeProgress * -maxSwipe}px)`,
           transition: 'transform 0.3s ease-out',
           zIndex: 1,
         }}
@@ -83,16 +78,13 @@ export default function SwipeableItem({
         {actions}
       </div>
 
-      {/* Main content - slides over actions */}
+      {/* Main content - stays in place */}
       <div
-        ref={itemRef}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
         onMouseLeave={handleReset}
         style={{
-          transform: `translateX(${translateX}px)`,
-          transition: isSwiped ? 'transform 0.3s ease-out' : 'none',
           touchAction: 'pan-y',
           userSelect: 'none',
           WebkitUserSelect: 'none',
