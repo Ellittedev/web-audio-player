@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
-import { getAllAudios, type StoredAudio } from './storage';
+import { getAllAudios } from './storage';
+import { extractAudioSegment } from './wav-encoder';
 
 export interface ExportMetadata {
   version: string;
@@ -26,12 +27,39 @@ export interface ExportedABLoop {
   _audioFile?: string; // Internal field for export association
 }
 
+export interface LoopExportInfo {
+  loopId: string;
+  loopName: string;
+  trackTitle: string;
+  startTime: number;
+  endTime: number;
+  blob: Blob;
+}
+
+export type TrackLoops = Record<string, ABLoop[]>;
+export type TrackBookmarks = Record<string, Bookmark[]>;
+
+interface ABLoop {
+  id: string;
+  name: string;
+  aPoint: number;
+  bPoint: number;
+  createdAt: number;
+}
+
+interface Bookmark {
+  id: string;
+  name: string;
+  timestamp: number;
+  createdAt: number;
+}
+
 export async function exportConfiguration(): Promise<Blob> {
   const zip = new JSZip();
-  
+
   // Get all audios from IndexedDB
   const storedAudios = await getAllAudios();
-  
+
   // Add audio files to zip
   for (const audio of storedAudios) {
     try {
@@ -42,9 +70,9 @@ export async function exportConfiguration(): Promise<Blob> {
       console.error(`Failed to add audio ${audio.name} to zip:`, error);
     }
   }
-  
+
   // Get bookmarks from localStorage
-  let trackBookmarks: Record<string, ExportedBookmark[]> = {};
+  let trackBookmarks: TrackBookmarks = {};
   try {
     const storedBookmarks = localStorage.getItem('audioPlayerBookmarks');
     if (storedBookmarks) {
@@ -53,9 +81,9 @@ export async function exportConfiguration(): Promise<Blob> {
   } catch (error) {
     console.error('Failed to load bookmarks for export:', error);
   }
-  
+
   // Get AB loops from localStorage
-  let trackLoops: Record<string, ExportedABLoop[]> = {};
+  let trackLoops: TrackLoops = {};
   try {
     const storedLoops = localStorage.getItem('audioPlayerABLoops');
     if (storedLoops) {
@@ -64,11 +92,11 @@ export async function exportConfiguration(): Promise<Blob> {
   } catch (error) {
     console.error('Failed to load AB loops for export:', error);
   }
-  
+
   // Combine all bookmarks and loops with their associated audio filenames
   const allBookmarks: ExportedBookmark[] = [];
   const allLoops: ExportedABLoop[] = [];
-  
+
   for (const [trackId, bookmarks] of Object.entries(trackBookmarks)) {
     const audio = storedAudios.find(a => a.id === trackId);
     if (audio) {
@@ -80,7 +108,7 @@ export async function exportConfiguration(): Promise<Blob> {
       }
     }
   }
-  
+
   for (const [trackId, loops] of Object.entries(trackLoops)) {
     const audio = storedAudios.find(a => a.id === trackId);
     if (audio) {
@@ -92,7 +120,7 @@ export async function exportConfiguration(): Promise<Blob> {
       }
     }
   }
-  
+
   // Create metadata JSON
   const metadata: ExportMetadata = {
     version: '0.2',
@@ -101,7 +129,7 @@ export async function exportConfiguration(): Promise<Blob> {
     bookmarkCount: allBookmarks.length,
     loopCount: allLoops.length
   };
-  
+
   // Create meta.json with bookmarks and loops data
   const exportData = {
     metadata,
@@ -114,9 +142,9 @@ export async function exportConfiguration(): Promise<Blob> {
     bookmarks: allBookmarks,
     loops: allLoops
   };
-  
+
   zip.file('meta.json', JSON.stringify(exportData, null, 2));
-  
+
   // Generate the zip file
   const content = await zip.generateAsync({ type: 'blob' });
   return content;
@@ -131,4 +159,146 @@ export function downloadExport(blob: Blob, filename: string = 'audio-player-expo
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+}
+
+/**
+ * Downloads a single loop export as WAV file
+ */
+export function downloadLoopExport(exportInfo: LoopExportInfo) {
+  const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.wav`;
+  downloadExport(exportInfo.blob, filename);
+}
+
+/**
+ * Downloads multiple loop exports as a ZIP file
+ */
+export function downloadAllLoopExports(exportInfos: LoopExportInfo[]) {
+  const zip = new JSZip();
+  
+  for (const exportInfo of exportInfos) {
+    const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.wav`;
+    zip.file(filename, exportInfo.blob);
+  }
+
+  zip.generateAsync({ type: 'blob' }).then((content) => {
+    downloadExport(content, `loops-export-${Date.now()}.zip`);
+  });
+}
+
+/**
+ * Sanitizes a string to be safe for use in filenames
+ */
+function sanitizeFilename(name: string): string {
+  return name
+    .replace(/[^\w\s-]/g, '')
+    .replace(/\s+/g, '_')
+    .trim()
+    .slice(0, 50);
+}
+
+/**
+ * Decodes audio data from a Blob into an AudioBuffer
+ */
+async function decodeAudioData(blob: Blob): Promise<AudioBuffer> {
+  const arrayBuffer = await blob.arrayBuffer();
+  const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+  return audioContext.decodeAudioData(arrayBuffer);
+}
+
+/**
+ * Exports a single loop as a WAV file
+ */
+export async function exportLoopAsAudio(
+  trackId: string,
+  loopId: string,
+  trackSrc: string,
+  trackTitle: string,
+  aPoint: number,
+  bPoint: number
+): Promise<LoopExportInfo> {
+  try {
+    const audioBuffer = await decodeAudioData(await fetch(trackSrc).then(r => r.blob()));
+    
+    const blob = extractAudioSegment(
+      audioBuffer,
+      aPoint,
+      bPoint,
+      { sampleRate: 44100, bitDepth: 16, channels: 1 }
+    );
+
+    // Find the loop name from localStorage
+    let trackLoops: Record<string, any[]> = {};
+    try {
+      const storedLoops = localStorage.getItem('audioPlayerABLoops');
+      if (storedLoops) {
+        trackLoops = JSON.parse(storedLoops);
+      }
+    } catch (error) {
+      console.error('Failed to load loops for export:', error);
+    }
+
+    const loopName = trackLoops[trackId]?.find(l => l.id === loopId)?.name || 'Loop';
+
+    return {
+      loopId,
+      loopName,
+      trackTitle,
+      startTime: aPoint,
+      endTime: bPoint,
+      blob
+    };
+  } catch (error) {
+    console.error('Failed to export loop:', error);
+    throw error;
+  }
+}
+
+/**
+ * Exports all loops from a track as individual WAV files in a ZIP archive
+ */
+export async function exportAllLoopsAsZip(
+  tracks: Array<{ id: string; title: string; src: string }>,
+  trackBookmarks: Record<string, any[]>,
+  trackLoops: Record<string, any[]>
+): Promise<Blob> {
+  const zip = new JSZip();
+  const exportInfos: LoopExportInfo[] = [];
+
+  for (const track of tracks) {
+    const loops = trackLoops[track.id] || [];
+    
+    for (const loop of loops) {
+      try {
+        const blob = await fetch(track.src).then(r => r.blob());
+        const audioBuffer = await decodeAudioData(blob);
+        
+        const segmentBlob = extractAudioSegment(
+          audioBuffer,
+          loop.aPoint,
+          loop.bPoint,
+          { sampleRate: 44100, bitDepth: 16, channels: 1 }
+        );
+
+        const exportInfo: LoopExportInfo = {
+          loopId: loop.id,
+          loopName: loop.name,
+          trackTitle: track.title,
+          startTime: loop.aPoint,
+          endTime: loop.bPoint,
+          blob: segmentBlob
+        };
+
+        exportInfos.push(exportInfo);
+      } catch (error) {
+        console.error(`Failed to export loop ${loop.id}:`, error);
+      }
+    }
+  }
+
+  for (const exportInfo of exportInfos) {
+    const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.wav`;
+    zip.file(filename, exportInfo.blob);
+  }
+
+  return await zip.generateAsync({ type: 'blob' });
 }

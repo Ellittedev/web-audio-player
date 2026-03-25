@@ -9,7 +9,7 @@ import EditBookmarkModal from "@/components/EditBookmarkModal";
 import EditABLoopModal from "@/components/EditABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
 import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, type StoredAudio } from "@/lib/storage";
-import { exportConfiguration, downloadExport } from "@/lib/export";
+import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip } from "@/lib/export";
 
 interface CustomTrack {
   id: string;
@@ -66,7 +66,8 @@ export default function Home() {
 
   // Export state
   const [isExporting, setIsExporting] = useState(false);
-  
+  const [isLoopExporting, setIsLoopExporting] = useState(false);
+
   // Configuration section state
   const [isConfigSectionOpen, setIsConfigSectionOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
@@ -503,6 +504,54 @@ export default function Home() {
       alert('Failed to export configuration. Please try again.');
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleExportLoop = async (loopId: string, loopName: string, aPoint: number, bPoint: number) => {
+    if (!currentTrack) return;
+
+    setIsLoopExporting(true);
+    try {
+      const exportInfo = await exportLoopAsAudio(
+        currentTrack.id,
+        loopId,
+        currentTrack.src,
+        currentTrack.title,
+        aPoint,
+        bPoint
+      );
+      downloadLoopExport(exportInfo);
+    } catch (error) {
+      console.error('Failed to export loop:', error);
+      alert('Failed to export loop. Please try again.');
+    } finally {
+      setIsLoopExporting(false);
+    }
+  };
+
+  const handleExportAllLoops = async () => {
+    if (!currentTrack) return;
+
+    const loops = trackLoops[currentTrack.id] || [];
+    if (loops.length === 0) {
+      alert('No loops to export for this track.');
+      return;
+    }
+
+    setIsLoopExporting(true);
+
+    try {
+      const blob = await exportAllLoopsAsZip(
+        [currentTrack],
+        trackBookmarks,
+        trackLoops
+      );
+      downloadExport(blob, `loops-export-${Date.now()}.zip`);
+    } catch (error) {
+      console.error('Failed to export loops:', error);
+      alert('Failed to export loops. Please try again.');
+    } finally {
+      setIsLoopExporting(false);
     }
   };
 
@@ -955,6 +1004,9 @@ export default function Home() {
           onEditLoopClick={handleEditABLoopClick}
           onDeleteLoop={handleDeleteABLoop}
           onEditLoop={handleEditABLoop}
+          onExportLoop={handleExportLoop}
+          onExportAllLoops={handleExportAllLoops}
+          isLoopExporting={isLoopExporting}
         />
 
         {/* Bookmarks Section */}

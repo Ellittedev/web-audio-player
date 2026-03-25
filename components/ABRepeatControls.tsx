@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Play, Pause, Edit2, Trash2 } from "lucide-react";
+import { Play, Pause, Edit2, Trash2, FileDown, Download } from "lucide-react";
 
 interface ABLoop {
   id: string;
@@ -22,6 +22,9 @@ interface ABRepeatControlsProps {
   onEditLoopClick: (loopId: string, name: string, aPoint: number, bPoint: number) => void;
   onDeleteLoop: (loopId: string) => void;
   onEditLoop: (loopId: string, aPoint: number, bPoint: number) => void;
+  onExportLoop?: (loopId: string, name: string, aPoint: number, bPoint: number) => void;
+  onExportAllLoops?: () => void;
+  isLoopExporting?: boolean;
 }
 
 export default function ABRepeatControls({
@@ -35,6 +38,9 @@ export default function ABRepeatControls({
   onEditLoopClick,
   onDeleteLoop,
   onEditLoop,
+  onExportLoop,
+  onExportAllLoops,
+  isLoopExporting = false,
 }: ABRepeatControlsProps) {
   const [showLoopsList, setShowLoopsList] = useState(false);
 
@@ -86,6 +92,27 @@ export default function ABRepeatControls({
       {/* Loops List */}
       {loops.length > 0 && (
         <div className="space-y-2 max-h-40 overflow-y-auto">
+          {/* Export All Loops Button */}
+          {onExportAllLoops && (
+            <button
+              onClick={onExportAllLoops}
+              disabled={isLoopExporting}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-green-100 dark:hover:bg-green-900/30 hover:text-green-700 dark:hover:text-green-400 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-2"
+            >
+              {isLoopExporting ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <span>Exporting...</span>
+                </>
+              ) : (
+                <>
+                  <Download className="w-3 h-3" />
+                  <span>Export All Loops as ZIP</span>
+                </>
+              )}
+            </button>
+          )}
+
           {loops.map((loop) => (
             <div
               key={loop.id}
@@ -120,6 +147,16 @@ export default function ABRepeatControls({
               </div>
 
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                {onExportLoop && (
+                  <button
+                    onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                    disabled={isLoopExporting}
+                    className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-green-300 dark:hover:bg-green-900/50 hover:text-green-700 dark:hover:text-green-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Export as WAV"
+                  >
+                    <FileDown className="w-4 h-4" />
+                  </button>
+                )}
                 <button
                   onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
                   className={`p-2 rounded transition-colors ${
