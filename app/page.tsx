@@ -5,6 +5,7 @@ import AudioUploader from "@/components/AudioUploader";
 import BookmarkModal from "@/components/BookmarkModal";
 import ABLoopModal from "@/components/ABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
+import { getAllAudios, deleteAudio, type StoredAudio } from "@/lib/storage";
 
 interface CustomTrack {
   id: string;
@@ -55,26 +56,15 @@ export default function Home() {
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Load tracks from localStorage on mount
-  useEffect(() => {
-    try {
-      const storedTracks = localStorage.getItem('audioPlayerTracks');
-      if (storedTracks) {
-        setCustomTracks(JSON.parse(storedTracks));
-      }
-    } catch (error) {
-      console.error('Failed to load tracks from localStorage:', error);
-    }
-  }, []);
+  // Track blob URLs to revoke on cleanup
+  const blobUrls = useRef<Map<string, string>>(new Map());
 
-  // Save tracks to localStorage whenever they change
+  // Cleanup blob URLs when component unmounts
   useEffect(() => {
-    try {
-      localStorage.setItem('audioPlayerTracks', JSON.stringify(customTracks));
-    } catch (error) {
-      console.error('Failed to save tracks to localStorage:', error);
-    }
-  }, [customTracks]);
+    return () => {
+      blobUrls.current.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
 
   // Load bookmarks from localStorage on mount
   useEffect(() => {
@@ -139,13 +129,35 @@ export default function Home() {
     }
   }, [activeLoopId]);
 
-  const currentTrack = tracks.length > 0 ? tracks[currentTrackIndex] : null;
+  // Load tracks from IndexedDB on mount
+  const loadTracks = useCallback(async () => {
+    try {
+      const storedAudios = await getAllAudios();
+      
+      // Convert stored audio data to blob URLs
+      const loadedTracks: CustomTrack[] = [];
+      for (const storedAudio of storedAudios) {
+        const response = await fetch(storedAudio.dataUrl);
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        blobUrls.current.set(storedAudio.id, url);
+        
+        loadedTracks.push({
+          id: storedAudio.id,
+          title: storedAudio.name.replace(/\.[^/.]+$/, ""),
+          src: url,
+        });
+      }
+      
+      setCustomTracks(loadedTracks);
+    } catch (error) {
+      console.error('Failed to load tracks from IndexedDB:', error);
+    }
+  }, []);
 
-  // Get bookmarks for current track
-  const bookmarks = currentTrack ? trackBookmarks[currentTrack.id] || [] : [];
-
-  // Get AB loops for current track
-  const loops = currentTrack ? trackLoops[currentTrack.id] || [] : [];
+  useEffect(() => {
+    loadTracks();
+  }, [loadTracks]);
 
   const handleUploadComplete = (audioFile: { name: string; url: string; id: string }) => {
     const newTrack: CustomTrack = {
@@ -155,6 +167,29 @@ export default function Home() {
     };
     setCustomTracks((prev) => [...prev, newTrack]);
   };
+
+  const handleDeleteTrack = async (trackId: string, trackSrc: string) => {
+    // Revoke the blob URL
+    const url = blobUrls.current.get(trackId);
+    if (url) {
+      URL.revokeObjectURL(url);
+      blobUrls.current.delete(trackId);
+    }
+
+    // Delete from IndexedDB
+    await deleteAudio(trackId);
+
+    // Update tracks state
+    setCustomTracks((prev) => prev.filter((t) => t.id !== trackId));
+  };
+
+  const currentTrack = tracks.length > 0 ? tracks[currentTrackIndex] : null;
+
+  // Get bookmarks for current track
+  const bookmarks = currentTrack ? trackBookmarks[currentTrack.id] || [] : [];
+
+  // Get AB loops for current track
+  const loops = currentTrack ? trackLoops[currentTrack.id] || [] : [];
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
@@ -499,6 +534,56 @@ export default function Home() {
             className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-zinc-900 dark:accent-zinc-100"
           />
         </div>
+
+        {/* Playlist Section */}
+        {tracks.length > 0 && (
+          <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
+            <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+              Playlist ({tracks.length} {tracks.length === 1 ? 'track' : 'tracks'})
+            </h3>
+            <div className="space-y-2 max-h-60 overflow-y-auto">
+              {tracks.map((track, index) => (
+                <div
+                  key={track.id}
+                  className={`flex items-center justify-between p-3 rounded-lg transition-colors group ${
+                    index === currentTrackIndex
+                      ? 'bg-zinc-200 dark:bg-zinc-700'
+                      : 'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                  }`}
+                >
+                  <button
+                    onClick={() => {
+                      setCurrentTrackIndex(index);
+                      setCurrentTime(0);
+                    }}
+                    className="flex items-center gap-3 flex-1 text-left"
+                  >
+                    <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 w-6">
+                      {index + 1}
+                    </span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                        {track.title}
+                      </span>
+                    </div>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleDeleteTrack(track.id, track.src);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 p-2 text-zinc-500 hover:text-red-500 transition-opacity"
+                    aria-label="Delete track"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* AB Repeat Loops Section */}
         <ABRepeatControls
