@@ -19,8 +19,6 @@ interface ABRepeatControlsProps {
   onToggleLoop: (loopId: string | null) => void;
   activeLoopId: string | null;
   loops: ABLoop[];
-  onStartABCreation: (currentTime: number, pointType: 'A' | 'B') => void;
-  abCreationState: 'idle' | 'waiting_for_b';
   onDeleteLoop: (loopId: string) => void;
   onEditLoop: (loopId: string, aPoint: number, bPoint: number) => void;
 }
@@ -33,8 +31,6 @@ export default function ABRepeatControls({
   onToggleLoop,
   activeLoopId,
   loops,
-  onStartABCreation,
-  abCreationState,
   onDeleteLoop,
   onEditLoop,
 }: ABRepeatControlsProps) {
@@ -55,45 +51,10 @@ export default function ABRepeatControls({
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  // Dynamic button for creating A/B loops
-  const renderCreateButton = () => {
-    if (abCreationState === 'waiting_for_b') {
-      return (
-        <button
-          onClick={() => onStartABCreation(currentTime, 'B')}
-          disabled={duration === 0}
-          className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 hover:bg-blue-200 dark:hover:bg-blue-800/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-blue-500"
-          aria-label="Set B point to complete loop"
-        >
-          <div className="text-xs font-bold text-blue-700 dark:text-blue-400 mb-1">SET B</div>
-          <div className="text-lg font-mono text-blue-900 dark:text-blue-300">
-            {formatTime(currentTime)}
-          </div>
-        </button>
-      );
-    }
-
-    // Default state - waiting for A point
-    return (
-      <button
-        onClick={() => onStartABCreation(currentTime, 'A')}
-        disabled={duration ? (duration === 0) : false}
-        className="p-2 rounded-lg bg-green-100 dark:bg-green-900/30 hover:bg-green-200 dark:hover:bg-green-800/40 transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-2 border-green-500"
-        aria-label="Set A point to start loop creation"
-      >
-        <div className="text-xs font-bold text-green-700 dark:text-green-400 mb-1">SET A</div>
-        <div className="text-lg font-mono text-green-900 dark:text-green-300">
-          {formatTime(currentTime)}
-        </div>
-      </button>
-    );
-  };
-
   return (
     <div className="w-full">
       {/* AB Repeat Controls Header */}
       <div className="flex items-center gap-3 mb-3">
-        {renderCreateButton()}
         <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">AB Repeat Loops</span>
       </div>
 

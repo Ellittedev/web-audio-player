@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2 } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw } from "lucide-react";
 import AudioUploader from "@/components/AudioUploader";
 import BookmarkModal from "@/components/BookmarkModal";
 import ABLoopModal from "@/components/ABLoopModal";
@@ -330,6 +330,29 @@ export default function Home() {
     }
   };
 
+  const handleLoopButtonClick = (time: number) => {
+    if (abCreationState === 'waiting_for_b') {
+      // We're waiting for B point - complete the loop creation
+      const aPoint = pendingAPoint;
+      const bPoint = time;
+
+      if (bPoint <= aPoint) {
+        alert('B point must be after A point. Please try again.');
+        setAbCreationState('idle');
+        setPendingAPoint(0);
+        return;
+      }
+
+      // Generate default name: "Loop from A to B"
+      const defaultName = `Loop from ${formatTime(aPoint)} to ${formatTime(bPoint)}`;
+      setIsABLoopModalOpen(true);
+    } else {
+      // We're idle - start setting point A
+      setPendingAPoint(time);
+      setAbCreationState('waiting_for_b');
+    }
+  };
+
   const handleSaveABLoop = (name: string, aPoint: number, bPoint: number) => {
     if (!currentTrack) return;
 
@@ -469,33 +492,69 @@ export default function Home() {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between gap-2">
           <button
-            onClick={prevTrack}
-            className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-            aria-label="Previous track"
+            onClick={handleAddBookmark}
+            disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
+            className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Add bookmark"
           >
-            <ChevronLeft className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+            <Bookmark className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
           </button>
 
-          <button
-            onClick={togglePlay}
-            className="p-4 rounded-full bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors shadow-lg"
-            aria-label={isPlaying ? "Pause" : "Play"}
-          >
-            {isPlaying ? (
-              <Pause className="w-8 h-8 text-white dark:text-black" />
-            ) : (
-              <Play className="w-8 h-8 text-white dark:text-black" />
-            )}
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={prevTrack}
+              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              aria-label="Previous track"
+            >
+              <ChevronLeft className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+            </button>
+
+            <button
+              onClick={togglePlay}
+              className="p-4 rounded-full bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors shadow-lg"
+              aria-label={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? (
+                <Pause className="w-8 h-8 text-white dark:text-black" />
+              ) : (
+                <Play className="w-8 h-8 text-white dark:text-black" />
+              )}
+            </button>
+
+            <button
+              onClick={nextTrack}
+              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              aria-label="Next track"
+            >
+              <ChevronRight className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+            </button>
+          </div>
 
           <button
-            onClick={nextTrack}
-            className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-            aria-label="Next track"
+            onClick={() => handleLoopButtonClick(currentTime)}
+            className={`p-3 rounded-full transition-colors ${
+              abCreationState === 'waiting_for_b'
+                ? 'bg-zinc-900 dark:bg-zinc-100'
+                : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+            }`}
+            aria-label="Set loop point A"
           >
-            <ChevronRight className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+            <div className="flex items-center gap-1">
+              <RotateCcw className={`w-6 h-6 ${
+                abCreationState === 'waiting_for_b'
+                  ? 'text-white dark:text-black'
+                  : 'text-zinc-900 dark:text-zinc-100'
+              }`} />
+              <span className={`text-sm font-semibold ${
+                abCreationState === 'waiting_for_b'
+                  ? 'text-white dark:text-black'
+                  : 'text-zinc-900 dark:text-zinc-100'
+              }`}>
+                {abCreationState === 'waiting_for_b' ? 'B' : 'A'}
+              </span>
+            </div>
           </button>
         </div>
 
@@ -581,27 +640,15 @@ export default function Home() {
           onToggleLoop={handleToggleABLoop}
           activeLoopId={activeLoopId}
           loops={loops}
-          onStartABCreation={handleStartABCreation}
-          abCreationState={abCreationState}
           onDeleteLoop={handleDeleteABLoop}
           onEditLoop={handleEditABLoop}
         />
 
-        {/* Bookmark Controls */}
-        <div className="w-full">
-          <div className="flex items-center gap-3 mb-3">
-            <button
-              onClick={handleAddBookmark}
-              disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
-              className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Add bookmark"
-            >
-              <Bookmark className="w-5 h-5 text-zinc-900 dark:text-zinc-100" />
-            </button>
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Bookmarks</span>
-          </div>
-
-          {/* Bookmarks List */}
+        {/* Bookmarks Section */}
+        <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
+            Bookmarks ({bookmarks.length})
+          </h3>
           {bookmarks.length > 0 && (
             <div className="space-y-2 max-h-40 overflow-y-auto">
               {bookmarks.map((bookmark) => (
@@ -637,7 +684,7 @@ export default function Home() {
 
           {bookmarks.length === 0 && currentTrack && (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              No bookmarks yet. Click the bookmark icon to add one.
+              No bookmarks yet. Click the bookmark icon in the controls to add one.
             </p>
           )}
         </div>
