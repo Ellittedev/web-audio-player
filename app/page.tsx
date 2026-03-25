@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw, Download } from "lucide-react";
 import AudioUploader from "@/components/AudioUploader";
 import BookmarkModal from "@/components/BookmarkModal";
 import ABLoopModal from "@/components/ABLoopModal";
@@ -9,6 +9,7 @@ import EditBookmarkModal from "@/components/EditBookmarkModal";
 import EditABLoopModal from "@/components/EditABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
 import { getAllAudios, deleteAudio, type StoredAudio } from "@/lib/storage";
+import { exportConfiguration, downloadExport } from "@/lib/export";
 
 interface CustomTrack {
   id: string;
@@ -62,6 +63,9 @@ export default function Home() {
   // AB Loop creation state: 'idle' or 'waiting_for_b' (after A is set)
   const [abCreationState, setAbCreationState] = useState<'idle' | 'waiting_for_b'>('idle');
   const [pendingAPoint, setPendingAPoint] = useState<number>(0);
+
+  // Export state
+  const [isExporting, setIsExporting] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -473,6 +477,19 @@ export default function Home() {
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const handleExport = async () => {
+    setIsExporting(true);
+    try {
+      const blob = await exportConfiguration();
+      downloadExport(blob);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export configuration. Please try again.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   // AB Loop playback logic
   useEffect(() => {
     if (!audioRef.current || !activeLoopId || !isPlaying) return;
@@ -561,6 +578,20 @@ export default function Home() {
 
         {/* Controls */}
         <div className="flex items-center justify-between gap-2">
+          <button
+            onClick={handleExport}
+            disabled={isExporting || tracks.length === 0}
+            className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label="Export configuration"
+            title="Export all audios, bookmarks, and loops"
+          >
+            {isExporting ? (
+              <div className="w-6 h-6 border-2 border-zinc-900 dark:border-zinc-100 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Download className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+            )}
+          </button>
+
           <button
             onClick={handleAddBookmark}
             disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
