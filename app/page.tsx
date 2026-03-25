@@ -423,9 +423,14 @@ export default function Home() {
     const handleTimeUpdate = () => {
       if (audioRef.current) {
         const currentTime = audioRef.current.currentTime;
-        
+
+        // If we're before A point, jump to A
+        if (currentTime < loop.aPoint) {
+          audioRef.current.currentTime = loop.aPoint;
+          setCurrentTime(loop.aPoint);
+        }
         // Check if we've reached B point, loop back to A
-        if (currentTime >= loop.bPoint) {
+        else if (currentTime >= loop.bPoint) {
           audioRef.current.currentTime = loop.aPoint;
           setCurrentTime(loop.aPoint);
         }
