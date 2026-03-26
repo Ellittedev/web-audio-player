@@ -199,7 +199,7 @@ export default function ABRepeatControls({
                 </div>
 
                 {/* Desktop hover actions */}
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="hidden group-hover:flex items-center gap-1 flex-shrink-0">
                   {onExportLoop && (
                     <button
                       onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
