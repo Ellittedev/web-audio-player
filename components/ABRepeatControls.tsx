@@ -125,7 +125,7 @@ export default function ABRepeatControls({
                         onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
                         disabled={isLoopExporting}
                         className="p-2 rounded text-white hover:bg-blue-600 transition-colors disabled:opacity-50"
-                        title="Export as WAV"
+                        title="Export as WebM (compressed)"
                       >
                         <FileDown className="w-4 h-4" />
                       </button>
@@ -205,7 +205,7 @@ export default function ABRepeatControls({
                       onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
                       disabled={isLoopExporting}
                       className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-green-300 dark:hover:bg-green-900/50 hover:text-green-700 dark:hover:text-green-400 transition-colors disabled:opacity-50"
-                      title="Export as WAV"
+                      title="Export as WebM (compressed)"
                     >
                       <FileDown className="w-4 h-4" />
                     </button>

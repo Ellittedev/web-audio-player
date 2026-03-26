@@ -121,7 +121,10 @@ export async function getAllAudios(): Promise<StoredAudio[]> { ... }
 
 ---
 
-## Testing Notes
-- No test framework configured yet (jest/playwright)
-- Manual testing recommended for audio playback flows
-- IndexedDB persistence tested across page reloads
+## Build & Run Commands
+- **Development**: `pnpm dev`
+- **Build**: `pnpm build`
+- **Start**: `pnpm start`
+- **Lint**: `pnpm lint`
+
+Always use `pnpm` instead of `npm` or `npx`.
