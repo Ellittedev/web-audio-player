@@ -26,7 +26,6 @@ interface ABRepeatControlsProps {
   onExportLoop?: (loopId: string, name: string, aPoint: number, bPoint: number) => void;
   onExportAllLoops?: () => void;
   isLoopExporting?: boolean;
-  exportProgress?: { current: number; total: number; message: string } | null;
 }
 
 export default function ABRepeatControls({
@@ -43,7 +42,6 @@ export default function ABRepeatControls({
   onExportLoop,
   onExportAllLoops,
   isLoopExporting = false,
-  exportProgress,
 }: ABRepeatControlsProps) {
   const [showLoopsList, setShowLoopsList] = useState(false);
 
@@ -89,28 +87,6 @@ export default function ABRepeatControls({
               {formatTime(currentTime)}
             </span>
           </div>
-        </div>
-      )}
-
-      {/* Export Progress Indicator */}
-      {exportProgress && (
-        <div className="mb-3 p-3 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 border border-green-300 dark:border-green-700 rounded-lg">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-            <span className="text-xs font-bold text-green-700 dark:text-green-400 uppercase">Exporting</span>
-          </div>
-          <div className="mb-1">
-            <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{exportProgress.message}</p>
-          </div>
-          <div className="w-full bg-green-200 dark:bg-green-800 rounded-full h-2">
-            <div 
-              className="bg-green-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(exportProgress.current / exportProgress.total) * 100}%` }}
-            />
-          </div>
-          <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1">
-            {exportProgress.current} / {exportProgress.total}
-          </p>
         </div>
       )}
 

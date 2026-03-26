@@ -10,7 +10,7 @@ import EditABLoopModal from "@/components/EditABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
 import SwipeableItem from "@/components/SwipeableItem";
 import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, type StoredAudio } from "@/lib/storage";
-import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip, type ExportProgress } from "@/lib/export";
+import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip } from "@/lib/export";
 
 interface CustomTrack {
   id: string;
@@ -68,7 +68,6 @@ export default function Home() {
   // Export state
   const [isExporting, setIsExporting] = useState(false);
   const [isLoopExporting, setIsLoopExporting] = useState(false);
-  const [exportProgress, setExportProgress] = useState<{ current: number; total: number; message: string } | null>(null);
 
   // Configuration section state
   const [isConfigSectionOpen, setIsConfigSectionOpen] = useState(false);
@@ -513,8 +512,6 @@ export default function Home() {
     if (!currentTrack) return;
 
     setIsLoopExporting(true);
-    setExportProgress({ current: 0, total: 1, message: `Exporting ${loopName}...` });
-    
     try {
       const exportInfo = await exportLoopAsAudio(
         currentTrack.id,
@@ -522,14 +519,7 @@ export default function Home() {
         currentTrack.src,
         currentTrack.title,
         aPoint,
-        bPoint,
-        (progress) => {
-          setExportProgress({
-            current: progress.current,
-            total: progress.total,
-            message: `Exporting ${progress.loopName}...`
-          });
-        }
+        bPoint
       );
       downloadLoopExport(exportInfo);
     } catch (error) {
@@ -537,7 +527,6 @@ export default function Home() {
       alert('Failed to export loop. Please try again.');
     } finally {
       setIsLoopExporting(false);
-      setExportProgress(null);
     }
   };
 
@@ -556,16 +545,7 @@ export default function Home() {
       const blob = await exportAllLoopsAsZip(
         [currentTrack],
         trackBookmarks,
-        trackLoops,
-        (progress) => {
-          setExportProgress({
-            current: progress.current,
-            total: progress.total,
-            message: progress.loopName === 'Complete' 
-              ? `Exporting ${progress.current}/${progress.total} loops...`
-              : `Exporting ${progress.loopName} (${progress.current}/${progress.total})...`
-          });
-        }
+        trackLoops
       );
       downloadExport(blob, `loops-export-${Date.now()}.zip`);
     } catch (error) {
@@ -573,7 +553,6 @@ export default function Home() {
       alert('Failed to export loops. Please try again.');
     } finally {
       setIsLoopExporting(false);
-      setExportProgress(null);
     }
   };
 
@@ -1048,7 +1027,6 @@ export default function Home() {
           onExportLoop={handleExportLoop}
           onExportAllLoops={handleExportAllLoops}
           isLoopExporting={isLoopExporting}
-          exportProgress={exportProgress}
         />
 
         {/* Bookmarks Section */}

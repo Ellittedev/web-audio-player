@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { getAllAudios } from './storage';
-import { extractAudioSegmentAsWebm, type WebmOptions } from './webm-export';
+import { extractAudioSegmentAsWebm } from './webm-export';
 
 export interface ExportMetadata {
   version: string;
@@ -53,16 +53,6 @@ interface Bookmark {
   timestamp: number;
   createdAt: number;
 }
-
-export interface ExportProgress {
-  type: 'loop' | 'all-loops';
-  current: number;
-  total: number;
-  loopName: string;
-  trackTitle: string;
-}
-
-export type OnExportProgress = (progress: ExportProgress) => void;
 
 export async function exportConfiguration(): Promise<Blob> {
   const zip = new JSZip();
@@ -224,8 +214,7 @@ export async function exportLoopAsAudio(
   trackSrc: string,
   trackTitle: string,
   aPoint: number,
-  bPoint: number,
-  onProgress?: OnExportProgress
+  bPoint: number
 ): Promise<LoopExportInfo> {
   try {
     const audioBuffer = await decodeAudioData(await fetch(trackSrc).then(r => r.blob()));
@@ -250,16 +239,6 @@ export async function exportLoopAsAudio(
 
     const loopName = trackLoops[trackId]?.find(l => l.id === loopId)?.name || 'Loop';
 
-    if (onProgress) {
-      onProgress({
-        type: 'loop',
-        current: 1,
-        total: 1,
-        loopName,
-        trackTitle
-      });
-    }
-
     return {
       loopId,
       loopName,
@@ -280,36 +259,16 @@ export async function exportLoopAsAudio(
 export async function exportAllLoopsAsZip(
   tracks: Array<{ id: string; title: string; src: string }>,
   trackBookmarks: Record<string, any[]>,
-  trackLoops: Record<string, any[]>,
-  onProgress?: OnExportProgress
+  trackLoops: Record<string, any[]>
 ): Promise<Blob> {
   const zip = new JSZip();
   const exportInfos: LoopExportInfo[] = [];
-
-  let totalLoops = 0;
-  for (const track of tracks) {
-    totalLoops += (trackLoops[track.id] || []).length;
-  }
-
-  let currentExport = 0;
 
   for (const track of tracks) {
     const loops = trackLoops[track.id] || [];
 
     for (const loop of loops) {
       try {
-        currentExport++;
-        
-        if (onProgress) {
-          onProgress({
-            type: 'all-loops',
-            current: currentExport,
-            total: totalLoops,
-            loopName: loop.name,
-            trackTitle: track.title
-          });
-        }
-
         const blob = await fetch(track.src).then(r => r.blob());
         const audioBuffer = await decodeAudioData(blob);
 
@@ -339,16 +298,6 @@ export async function exportAllLoopsAsZip(
   for (const exportInfo of exportInfos) {
     const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.webm`;
     zip.file(filename, exportInfo.blob);
-  }
-
-  if (onProgress) {
-    onProgress({
-      type: 'all-loops',
-      current: totalLoops,
-      total: totalLoops,
-      loopName: 'Complete',
-      trackTitle: ''
-    });
   }
 
   return await zip.generateAsync({ type: 'blob' });
