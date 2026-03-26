@@ -979,23 +979,23 @@ export default function Home() {
                         : 'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700'
                     }`}
                   >
-                    <div className="flex items-center gap-3 flex-1">
-                      <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 w-6">
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 w-6 flex-shrink-0">
                         {index + 1}
                       </span>
-                      <div className="flex flex-col min-w-0">
+                      <div className="flex flex-col min-w-0 flex-1">
                         <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
                           {track.title}
                         </span>
                       </div>
                     </div>
-                    {/* Desktop hover actions */}
+                    {/* Desktop delete button - always visible on right */}
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
                         handleDeleteTrack(track.id, track.src);
                       }}
-                      className="opacity-0 group-hover:opacity-100 p-2 text-zinc-500 hover:text-red-500 transition-opacity"
+                      className="flex-shrink-0 p-2 text-zinc-400 opacity-0 group-hover:opacity-100 hover:text-red-500 rounded transition-all"
                       aria-label="Delete track"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -1069,7 +1069,7 @@ export default function Home() {
                   >
                     <button
                       onClick={() => handleJumpToBookmark(bookmark.timestamp)}
-                      className="flex items-center gap-3 flex-1 text-left"
+                      className="flex items-center gap-3 text-left min-w-0 flex-1"
                     >
                       <Bookmark className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
                       <div className="flex flex-col min-w-0">
@@ -1082,7 +1082,7 @@ export default function Home() {
                       </div>
                     </button>
                     {/* Desktop hover actions */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0 ml-2">
                       <button
                         onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
                         className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
