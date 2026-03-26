@@ -1,6 +1,6 @@
 import JSZip from 'jszip';
 import { getAllAudios } from './storage';
-import { extractAudioSegmentAsWebm } from './webm-export';
+import { extractAudioSegmentAsMp3 } from './mp3-export';
 
 export interface ExportMetadata {
   version: string;
@@ -162,10 +162,10 @@ export function downloadExport(blob: Blob, filename: string = 'audio-player-expo
 }
 
 /**
- * Downloads a single loop export as WebM file (compressed format)
+ * Downloads a single loop export as MP3 file (compressed format)
  */
 export function downloadLoopExport(exportInfo: LoopExportInfo) {
-  const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.webm`;
+  const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.mp3`;
   downloadExport(exportInfo.blob, filename);
 }
 
@@ -176,7 +176,7 @@ export function downloadAllLoopExports(exportInfos: LoopExportInfo[]) {
   const zip = new JSZip();
 
   for (const exportInfo of exportInfos) {
-    const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.webm`;
+    const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.mp3`;
     zip.file(filename, exportInfo.blob);
   }
 
@@ -206,7 +206,7 @@ async function decodeAudioData(blob: Blob): Promise<AudioBuffer> {
 }
 
 /**
- * Exports a single loop as a WebM file (compressed format)
+ * Exports a single loop as an MP3 file (compressed format)
  */
 export async function exportLoopAsAudio(
   trackId: string,
@@ -219,11 +219,10 @@ export async function exportLoopAsAudio(
   try {
     const audioBuffer = await decodeAudioData(await fetch(trackSrc).then(r => r.blob()));
 
-    const blob = await extractAudioSegmentAsWebm(
+    const blob = await extractAudioSegmentAsMp3(
       audioBuffer,
       aPoint,
-      bPoint,
-      { sampleRate: 48000, bitrate: 64000, channels: 1 } // Mono at 64kbps Opus
+      bPoint
     );
 
     // Find the loop name from localStorage
@@ -254,7 +253,7 @@ export async function exportLoopAsAudio(
 }
 
 /**
- * Exports all loops from a track as individual WebM files in a ZIP archive
+ * Exports all loops from a track as individual MP3 files in a ZIP archive
  */
 export async function exportAllLoopsAsZip(
   tracks: Array<{ id: string; title: string; src: string }>,
@@ -272,11 +271,10 @@ export async function exportAllLoopsAsZip(
         const blob = await fetch(track.src).then(r => r.blob());
         const audioBuffer = await decodeAudioData(blob);
 
-        const segmentBlob = await extractAudioSegmentAsWebm(
+        const segmentBlob = await extractAudioSegmentAsMp3(
           audioBuffer,
           loop.aPoint,
-          loop.bPoint,
-          { sampleRate: 48000, bitrate: 64000, channels: 1 } // Mono at 64kbps Opus
+          loop.bPoint
         );
 
         const exportInfo: LoopExportInfo = {
@@ -296,7 +294,7 @@ export async function exportAllLoopsAsZip(
   }
 
   for (const exportInfo of exportInfos) {
-    const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.webm`;
+    const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.mp3`;
     zip.file(filename, exportInfo.blob);
   }
 

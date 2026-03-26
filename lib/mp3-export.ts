@@ -3,33 +3,19 @@
  * This provides good compression (~2x smaller than WAV) with instant encoding
  */
 
-// Import lamejs dynamically to avoid ES module issues
+// Import @breezystack/lamejs (maintained fork of lamejs)
 let Mp3Encoder: any;
 
 async function initLameJs() {
   if (!Mp3Encoder) {
-    const lamejs = await import('lamejs');
-    Mp3Encoder = lamejs.Mp3Encoder || lamejs.default?.Mp3Encoder;
+    const lamejs = await import('@breezystack/lamejs');
+    Mp3Encoder = lamejs.Mp3Encoder;
   }
   return Mp3Encoder;
 }
 
 const DEFAULT_SAMPLE_RATE = 44100;
 const DEFAULT_BITRATE = 128; // 128kbps - good balance of quality and size
-
-/**
- * Mixes stereo audio to mono
- */
-function mixStereoToMono(left: Float32Array, right: Float32Array): Float32Array {
-  const length = Math.min(left.length, right.length);
-  const mono = new Float32Array(length);
-  
-  for (let i = 0; i < length; i++) {
-    mono[i] = (left[i] + right[i]) / 2;
-  }
-  
-  return mono;
-}
 
 /**
  * Extracts a segment from an AudioBuffer and exports as MP3
@@ -46,15 +32,20 @@ export async function extractAudioSegmentAsMp3(
     throw new Error('Invalid time range: endTime must be greater than startTime');
   }
 
-  // Extract the segment (mix to mono for smaller files)
+  // Extract the segment and mix to mono
   let audioData: Float32Array;
-  
+
   if (audioBuffer.numberOfChannels === 1) {
     audioData = audioBuffer.getChannelData(0).slice(startSample, endSample);
   } else {
     const leftChannel = audioBuffer.getChannelData(0);
     const rightChannel = audioBuffer.getChannelData(1);
-    audioData = mixStereoToMono(leftChannel.slice(startSample, endSample), rightChannel.slice(startSample, endSample));
+    
+    // Mix to mono by averaging channels
+    audioData = new Float32Array(endSample - startSample);
+    for (let i = 0; i < audioData.length; i++) {
+      audioData[i] = (leftChannel[startSample + i] + rightChannel[startSample + i]) * 0.5;
+    }
   }
 
   // Encode as MP3 synchronously (async due to dynamic import)
@@ -66,14 +57,14 @@ export async function extractAudioSegmentAsMp3(
  */
 async function encodeMp3(audioData: Float32Array, sampleRate: number): Promise<Blob> {
   const Mp3EncoderClass = await initLameJs();
-  
+
   if (!Mp3EncoderClass) {
     throw new Error('Failed to load MP3 encoder');
   }
 
   const bitrate = DEFAULT_BITRATE;
-  
-  // Initialize encoder: [channels, sampleRate, bitrate]
+
+  // Initialize encoder with channels=1 (mono), sampleRate, bitrate in kbps
   const encoder = new Mp3EncoderClass(1, sampleRate, bitrate);
 
   // Convert Float32 to Int16 and encode
@@ -82,14 +73,16 @@ async function encodeMp3(audioData: Float32Array, sampleRate: number): Promise<B
 
   for (let i = 0; i < audioData.length; i += samplesPerFrame) {
     const frameSize = Math.min(samplesPerFrame, audioData.length - i);
-    const left = new Float32Array(frameSize);
-    const right = new Float32Array(frameSize);
+    
+    // Convert Float32 (-1 to 1) to Int16 (-32768 to 32767)
+    const left = new Int16Array(frameSize);
+    const right = new Int16Array(frameSize);
 
-    // Convert Float32 (-1 to 1) and copy to left/right channels
     for (let j = 0; j < frameSize; j++) {
-      const sample = Math.max(-1, Math.min(1, audioData[i + j]));
-      left[j] = sample;
-      right[j] = sample; // Duplicate for mono encoded as stereo
+      // Scale Float32 to Int16 range - clamp values to prevent overflow
+      const sample = Math.max(-1.0, Math.min(1.0, audioData[i + j]));
+      left[j] = Math.round(sample * 32767);
+      right[j] = Math.round(sample * 32767);
     }
 
     const encoded = encoder.encodeBuffer(left, right);
