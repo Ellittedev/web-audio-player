@@ -1,17 +1,13 @@
 declare module 'lamejs' {
-  export class MP3Encoder {
+  export class Mp3Encoder {
     constructor(
       numChannels: number,
       samplerate: number,
-      bitrate: number,
-      quality: number,
-      mode?: 'stereo' | 'mono' | 'joint-stereo' | 'dual-channel'
+      bitrate: number
     );
-    encode(samples: Int16Array): Uint8Array | null;
-    flush(): Uint8Array | null;
+    encodeBuffer(left: Float32Array, right: Float32Array): Uint8Array;
+    flush(): Uint8Array;
   }
 
-  export class Lame {
-    static getLameVersion(): string;
-  }
+  export const Lame: any;
 }

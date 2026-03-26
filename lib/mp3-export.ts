@@ -1,19 +1,21 @@
 /**
  * Encodes audio data as MP3 format using lamejs
- * This provides good compression (~6x smaller than WAV) with instant encoding
+ * This provides good compression (~2x smaller than WAV) with instant encoding
  */
 
-import { Lame, MP3Encoder } from 'lamejs';
+// Import lamejs dynamically to avoid ES module issues
+let Mp3Encoder: any;
 
-export interface Mp3Options {
-  sampleRate?: number;
-  bitrate?: number; // in kbps, default 128
-  mode?: 'stereo' | 'mono' | 'joint-stereo' | 'dual-channel';
+async function initLameJs() {
+  if (!Mp3Encoder) {
+    const lamejs = await import('lamejs');
+    Mp3Encoder = lamejs.Mp3Encoder || lamejs.default?.Mp3Encoder;
+  }
+  return Mp3Encoder;
 }
 
 const DEFAULT_SAMPLE_RATE = 44100;
 const DEFAULT_BITRATE = 128; // 128kbps - good balance of quality and size
-const DEFAULT_MODE: Mp3Options['mode'] = 'stereo';
 
 /**
  * Mixes stereo audio to mono
@@ -32,12 +34,11 @@ function mixStereoToMono(left: Float32Array, right: Float32Array): Float32Array 
 /**
  * Extracts a segment from an AudioBuffer and exports as MP3
  */
-export function extractAudioSegmentAsMp3(
+export async function extractAudioSegmentAsMp3(
   audioBuffer: AudioBuffer,
   startTime: number,
-  endTime: number,
-  options: Mp3Options = {}
-): Blob {
+  endTime: number
+): Promise<Blob> {
   const startSample = Math.floor(startTime * audioBuffer.sampleRate);
   const endSample = Math.min(Math.floor(endTime * audioBuffer.sampleRate), audioBuffer.length);
 
@@ -45,11 +46,10 @@ export function extractAudioSegmentAsMp3(
     throw new Error('Invalid time range: endTime must be greater than startTime');
   }
 
-  // Extract the segment
+  // Extract the segment (mix to mono for smaller files)
   let audioData: Float32Array;
-  const channels = audioBuffer.numberOfChannels;
-
-  if (channels === 1) {
+  
+  if (audioBuffer.numberOfChannels === 1) {
     audioData = audioBuffer.getChannelData(0).slice(startSample, endSample);
   } else {
     const leftChannel = audioBuffer.getChannelData(0);
@@ -57,58 +57,42 @@ export function extractAudioSegmentAsMp3(
     audioData = mixStereoToMono(leftChannel.slice(startSample, endSample), rightChannel.slice(startSample, endSample));
   }
 
-  // Encode as MP3 synchronously (instant)
-  return encodeMp3(audioData, audioBuffer.sampleRate, options);
+  // Encode as MP3 synchronously (async due to dynamic import)
+  return encodeMp3(audioData, audioBuffer.sampleRate);
 }
 
 /**
  * Encodes Float32 audio data to MP3 format
  */
-function encodeMp3(
-  audioData: Float32Array,
-  sampleRate: number,
-  options: Mp3Options = {}
-): Blob {
-  const {
-    bitrate = DEFAULT_BITRATE,
-    mode = DEFAULT_MODE,
-  } = options;
+async function encodeMp3(audioData: Float32Array, sampleRate: number): Promise<Blob> {
+  const Mp3EncoderClass = await initLameJs();
+  
+  if (!Mp3EncoderClass) {
+    throw new Error('Failed to load MP3 encoder');
+  }
 
-  // Determine channels for encoding
-  const isMono = mode === 'mono' || audioData.length > 0 && false;
-  const numChannels = isMono ? 1 : 2;
-
-  // Create MP3 encoder
-  const encoder = new MP3Encoder(
-    numChannels,
-    sampleRate,
-    bitrate,
-    5, // VBR quality (0-9, higher is better)
-    mode
-  );
+  const bitrate = DEFAULT_BITRATE;
+  
+  // Initialize encoder: [channels, sampleRate, bitrate]
+  const encoder = new Mp3EncoderClass(1, sampleRate, bitrate);
 
   // Convert Float32 to Int16 and encode
   const mp3Data: Uint8Array[] = [];
   const samplesPerFrame = 1152;
-  
+
   for (let i = 0; i < audioData.length; i += samplesPerFrame) {
-    const frameData = new Int16Array(numChannels * samplesPerFrame);
-    
-    // Convert Float32 (-1 to 1) to Int16 (-32768 to 32767)
-    for (let j = 0; j < samplesPerFrame && i + j < audioData.length; j++) {
+    const frameSize = Math.min(samplesPerFrame, audioData.length - i);
+    const left = new Float32Array(frameSize);
+    const right = new Float32Array(frameSize);
+
+    // Convert Float32 (-1 to 1) and copy to left/right channels
+    for (let j = 0; j < frameSize; j++) {
       const sample = Math.max(-1, Math.min(1, audioData[i + j]));
-      const intSample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
-      
-      if (isMono) {
-        frameData[j] = intSample;
-        frameData[samplesPerFrame + j] = intSample; // Duplicate for stereo encoder
-      } else {
-        frameData[j] = intSample;
-        frameData[samplesPerFrame + j] = intSample;
-      }
+      left[j] = sample;
+      right[j] = sample; // Duplicate for mono encoded as stereo
     }
 
-    const encoded = encoder.encode(frameData);
+    const encoded = encoder.encodeBuffer(left, right);
     if (encoded && encoded.length > 0) {
       mp3Data.push(encoded);
     }
@@ -152,11 +136,7 @@ export function estimateMp3Size(durationSeconds: number, bitrateKbps: number = D
   return overhead + Math.floor((bitrateKbps * 1000 / 8) * durationSeconds);
 }
 
-/**
- * Example: File size comparison for a 4-minute clip
- */
 console.log('MP3 export module loaded');
 console.log('Example file sizes for 4-minute audio:');
 console.log(`  WAV (44.1kHz, 16-bit, mono): ~7 MB`);
-console.log(`  MP3 (128kbps, stereo): ~3.7 MB (~2x smaller)`);
-console.log(`  MP3 (96kbps, mono): ~2.3 MB (~3x smaller)`);
+console.log(`  MP3 (128kbps, mono): ~2.3 MB (~3x smaller)`);

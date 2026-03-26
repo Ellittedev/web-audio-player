@@ -167,7 +167,7 @@ export function downloadExport(blob: Blob, filename: string = 'audio-player-expo
 /**
  * Downloads a single loop export as WebM or MP3 file (compressed format)
  */
-export function downloadLoopExport(exportInfo: LoopExportInfo, format: ExportFormat = 'webm') {
+export function downloadLoopExport(exportInfo: LoopExportInfo, format: ExportFormat = 'mp3') {
   const extension = format === 'webm' ? 'webm' : 'mp3';
   const filename = `${sanitizeFilename(exportInfo.trackTitle)}_${sanitizeFilename(exportInfo.loopName)}.${extension}`;
   downloadExport(exportInfo.blob, filename);
@@ -220,7 +220,7 @@ export async function exportLoopAsAudio(
   trackTitle: string,
   aPoint: number,
   bPoint: number,
-  format: ExportFormat = 'webm'
+  format: ExportFormat = 'mp3'
 ): Promise<LoopExportInfo> {
   try {
     const audioBuffer = await decodeAudioData(await fetch(trackSrc).then(r => r.blob()));
@@ -228,12 +228,11 @@ export async function exportLoopAsAudio(
     let blob: Blob;
     
     if (format === 'mp3') {
-      // MP3: 128kbps stereo, instant encoding
-      blob = extractAudioSegmentAsMp3(
+      // MP3: 128kbps mono, instant encoding (async due to dynamic import)
+      blob = await extractAudioSegmentAsMp3(
         audioBuffer,
         aPoint,
-        bPoint,
-        { sampleRate: 44100, bitrate: 128, mode: 'stereo' }
+        bPoint
       );
     } else {
       // WebM: 64kbps mono, real-time encoding
@@ -279,7 +278,7 @@ export async function exportAllLoopsAsZip(
   tracks: Array<{ id: string; title: string; src: string }>,
   trackBookmarks: Record<string, any[]>,
   trackLoops: Record<string, any[]>,
-  format: ExportFormat = 'webm'
+  format: ExportFormat = 'mp3'
 ): Promise<Blob> {
   const zip = new JSZip();
   const exportInfos: LoopExportInfo[] = [];
@@ -295,11 +294,10 @@ export async function exportAllLoopsAsZip(
         let segmentBlob: Blob;
         
         if (format === 'mp3') {
-          segmentBlob = extractAudioSegmentAsMp3(
+          segmentBlob = await extractAudioSegmentAsMp3(
             audioBuffer,
             loop.aPoint,
-            loop.bPoint,
-            { sampleRate: 44100, bitrate: 128, mode: 'stereo' }
+            loop.bPoint
           );
         } else {
           segmentBlob = await extractAudioSegmentAsWebm(
