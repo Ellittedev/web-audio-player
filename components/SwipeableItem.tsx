@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, ReactNode } from "react";
+import { useState, useRef, ReactNode, useEffect } from "react";
 
 interface SwipeableItemProps {
   children: ReactNode;
@@ -21,9 +21,30 @@ export default function SwipeableItem({
 }: SwipeableItemProps) {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [swipeProgress, setSwipeProgress] = useState(0); // 0 to 1
+  const actionsRef = useRef<HTMLDivElement>(null);
 
   const minSwipeDistance = threshold;
-  const maxSwipe = 150;
+  const [maxSwipe, setMaxSwipe] = useState(150);
+
+  useEffect(() => {
+    // Use ResizeObserver to measure the actual width of the actions container
+    if (actionsRef.current) {
+      const observer = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const width = entry.contentRect.width;
+          if (width > 0) {
+            setMaxSwipe(width);
+          }
+        }
+      });
+
+      observer.observe(actionsRef.current);
+
+      return () => {
+        observer.disconnect();
+      };
+    }
+  }, [actions]);
 
   const onTouchStart = (e: React.TouchEvent) => {
     if (disabled) return;
@@ -65,6 +86,15 @@ export default function SwipeableItem({
 
   return (
     <div className="relative overflow-hidden" style={{ height: '100%' }}>
+      {/* Hidden measurement container to get actual width */}
+      <div
+        ref={actionsRef}
+        className="absolute -left-full opacity-0 pointer-events-none whitespace-nowrap"
+        aria-hidden="true"
+      >
+        {actions}
+      </div>
+
       {/* Action buttons container - hidden off-screen to the right by default */}
       <div
         className="absolute top-0 bottom-0 flex items-center gap-0 px-0"
