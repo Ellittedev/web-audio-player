@@ -953,13 +953,17 @@ export default function Home() {
                 <SwipeableItem
                   key={track.id}
                   actions={
-                    <button
-                      onClick={() => handleDeleteTrack(track.id, track.src)}
-                      className="p-2 rounded text-white hover:bg-red-600 transition-colors"
-                      aria-label="Delete track"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <div className="w-full h-full flex">
+                      <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
+                        <button
+                          onClick={() => handleDeleteTrack(track.id, track.src)}
+                          className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                          aria-label="Delete track"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   }
                   onSwipeLeft={() => handleDeleteTrack(track.id, track.src)}
                   threshold={30}
@@ -1036,22 +1040,26 @@ export default function Home() {
                 <SwipeableItem
                   key={bookmark.id}
                   actions={
-                    <>
-                      <button
-                        onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
-                        className="p-2 rounded text-white hover:bg-red-600 transition-colors"
-                        aria-label="Edit bookmark"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteBookmark(bookmark.id)}
-                        className="p-2 rounded text-white hover:bg-red-600 transition-colors"
-                        aria-label="Delete bookmark"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </>
+                    <div className="w-full h-full flex">
+                      <div className="flex-1 bg-yellow-500/90 dark:bg-yellow-600/90 flex items-center justify-center">
+                        <button
+                          onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
+                          className="p-2 rounded text-white hover:bg-yellow-600 transition-colors"
+                          aria-label="Edit bookmark"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
+                        <button
+                          onClick={() => handleDeleteBookmark(bookmark.id)}
+                          className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                          aria-label="Delete bookmark"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
                   }
                   onSwipeLeft={() => handleDeleteBookmark(bookmark.id)}
                   threshold={30}

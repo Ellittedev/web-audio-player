@@ -8,6 +8,7 @@ interface SwipeableItemProps {
   onSwipeLeft?: () => void;
   threshold?: number;
   disabled?: boolean;
+  backgroundColors?: string[]; // Array of colors for each action button, or single color for all
 }
 
 export default function SwipeableItem({
@@ -16,6 +17,7 @@ export default function SwipeableItem({
   onSwipeLeft,
   threshold = 50,
   disabled = false,
+  backgroundColors,
 }: SwipeableItemProps) {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [swipeProgress, setSwipeProgress] = useState(0); // 0 to 1
@@ -65,7 +67,7 @@ export default function SwipeableItem({
     <div className="relative overflow-hidden" style={{ height: '100%' }}>
       {/* Action buttons container - hidden off-screen to the right by default */}
       <div
-        className="absolute top-0 bottom-0 flex items-center gap-1 px-2 bg-red-500/90 dark:bg-red-600/90"
+        className="absolute top-0 bottom-0 flex items-center gap-0 px-0"
         style={{
           left: '100%',
           width: `${maxSwipe}px`,

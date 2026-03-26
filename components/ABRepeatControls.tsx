@@ -118,43 +118,51 @@ export default function ABRepeatControls({
             <SwipeableItem
               key={loop.id}
               actions={
-                <>
+                <div className="w-full h-full flex">
                   {onExportLoop && (
-                    <button
-                      onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
-                      disabled={isLoopExporting}
-                      className="p-2 rounded text-white hover:bg-red-600 transition-colors disabled:opacity-50"
-                      title="Export as WAV"
-                    >
-                      <FileDown className="w-4 h-4" />
-                    </button>
+                    <div className="flex-1 bg-blue-500/90 dark:bg-blue-600/90 flex items-center justify-center">
+                      <button
+                        onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                        disabled={isLoopExporting}
+                        className="p-2 rounded text-white hover:bg-blue-600 transition-colors disabled:opacity-50"
+                        title="Export as WAV"
+                      >
+                        <FileDown className="w-4 h-4" />
+                      </button>
+                    </div>
                   )}
-                  <button
-                    onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
-                    className="p-2 rounded text-white hover:bg-red-600 transition-colors"
-                    title={activeLoopId === loop.id ? "Stop this loop" : "Play this loop"}
-                  >
-                    {activeLoopId === loop.id ? (
-                      <Pause className="w-4 h-4" />
-                    ) : (
-                      <Play className="w-4 h-4" />
-                    )}
-                  </button>
-                  <button
-                    onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
-                    className="p-2 rounded text-white hover:bg-red-600 transition-colors"
-                    title="Edit loop"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => onDeleteLoop(loop.id)}
-                    className="p-2 rounded text-white hover:bg-red-600 transition-colors"
-                    title="Delete loop"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </>
+                  <div className="flex-1 bg-green-500/90 dark:bg-green-600/90 flex items-center justify-center">
+                    <button
+                      onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
+                      className="p-2 rounded text-white hover:bg-green-600 transition-colors"
+                      title={activeLoopId === loop.id ? "Stop this loop" : "Play this loop"}
+                    >
+                      {activeLoopId === loop.id ? (
+                        <Pause className="w-4 h-4" />
+                      ) : (
+                        <Play className="w-4 h-4" />
+                      )}
+                    </button>
+                  </div>
+                  <div className="flex-1 bg-yellow-500/90 dark:bg-yellow-600/90 flex items-center justify-center">
+                    <button
+                      onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                      className="p-2 rounded text-white hover:bg-yellow-600 transition-colors"
+                      title="Edit loop"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
+                    <button
+                      onClick={() => onDeleteLoop(loop.id)}
+                      className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                      title="Delete loop"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
               }
               onSwipeLeft={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
               threshold={30}
