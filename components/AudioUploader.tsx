@@ -64,10 +64,10 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
       return;
     }
 
-    // Validate file size (max 50MB)
-    const maxSize = 50 * 1024 * 1024;
+    // Validate file size (max 500MB)
+    const maxSize = 500 * 1024 * 1024;
     if (file.size > maxSize) {
-      setError("File too large. Max size is 50MB.");
+      setError("File too large. Max size is 500MB.");
       return;
     }
 
@@ -177,7 +177,7 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
               Drop audio file here or click to browse
             </p>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-              MP3, WAV, OGG, WEBM, M4A, AAC (max 50MB)
+              MP3, WAV, OGG, WEBM, M4A, AAC (max 500MB)
             </p>
           </>
         )}
