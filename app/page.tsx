@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw, Download } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw, Download, SkipForward, SkipBack } from "lucide-react";
 import AudioUploader from "@/components/AudioUploader";
 import BookmarkModal from "@/components/BookmarkModal";
 import ABLoopModal from "@/components/ABLoopModal";
@@ -299,6 +299,22 @@ export default function Home() {
   const prevTrack = () => {
     setCurrentTrackIndex((prev) => (prev - 1 + tracks.length) % tracks.length);
     setCurrentTime(0);
+  };
+
+  const handleFastForward = () => {
+    if (audioRef.current && !isNaN(currentTime)) {
+      const newTime = Math.min(currentTime + 5, duration);
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
+  const handleFastBackward = () => {
+    if (audioRef.current && !isNaN(currentTime)) {
+      const newTime = Math.max(currentTime - 5, 0);
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
   };
 
   // Bookmark handlers
@@ -866,8 +882,17 @@ export default function Home() {
 
           <div className="flex items-center gap-4">
             <button
+              onClick={handleFastBackward}
+              disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
+              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Fast backward 5 seconds"
+            >
+              <SkipBack className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+            </button>
+
+            <button
               onClick={prevTrack}
-              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Previous track"
             >
               <ChevronLeft className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
@@ -875,7 +900,7 @@ export default function Home() {
 
             <button
               onClick={togglePlay}
-              className="p-4 rounded-full bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors shadow-lg"
+              className="p-4 rounded-full bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
@@ -887,10 +912,19 @@ export default function Home() {
 
             <button
               onClick={nextTrack}
-              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               aria-label="Next track"
             >
               <ChevronRight className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+            </button>
+
+            <button
+              onClick={handleFastForward}
+              disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
+              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              aria-label="Fast forward 5 seconds"
+            >
+              <SkipForward className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
             </button>
           </div>
 
