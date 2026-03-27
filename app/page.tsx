@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw, Download, SkipForward, SkipBack } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw, Download, SkipForward, SkipBack, Loader2 } from "lucide-react";
 import AudioUploader from "@/components/AudioUploader";
 import BookmarkModal from "@/components/BookmarkModal";
 import ABLoopModal from "@/components/ABLoopModal";
@@ -51,6 +51,9 @@ export default function Home() {
   // AB Loops: map of trackId -> loops array
   const [trackLoops, setTrackLoops] = useState<Record<string, ABLoop[]>>({});
   const [activeLoopId, setActiveLoopId] = useState<string | null>(null);
+
+  // Loading state for initial track loading
+  const [isLoadingTracks, setIsLoadingTracks] = useState(true);
 
   const [isBookmarkModalOpen, setIsBookmarkModalOpen] = useState(false);
   const [isABLoopModalOpen, setIsABLoopModalOpen] = useState(false);
@@ -151,6 +154,7 @@ export default function Home() {
 
   // Load tracks from IndexedDB on mount
   const loadTracks = useCallback(async () => {
+    setIsLoadingTracks(true);
     try {
       const storedAudios = await getAllAudios();
 
@@ -160,7 +164,7 @@ export default function Home() {
         // The dataUrl is a base64 data URL, convert it to a blob URL
         const [meta, base64Data] = storedAudio.dataUrl.split(',');
         const mimeType = meta.match(/:(.*?);/)?.[1] || 'audio/mpeg';
-        
+
         // Convert base64 to blob
         const byteCharacters = atob(base64Data);
         const byteNumbers = new Array(byteCharacters.length);
@@ -169,7 +173,7 @@ export default function Home() {
         }
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: mimeType });
-        
+
         const url = URL.createObjectURL(blob);
         blobUrls.current.set(storedAudio.id, url);
 
@@ -181,8 +185,10 @@ export default function Home() {
       }
 
       setCustomTracks(loadedTracks);
+      setIsLoadingTracks(false);
     } catch (error) {
       console.error('Failed to load tracks from IndexedDB:', error);
+      setIsLoadingTracks(false);
     }
   }, []);
 
@@ -818,7 +824,18 @@ export default function Home() {
 
   return (
     <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-col w-full max-w-md flex-col items-center gap-8 py-32 px-6 bg-white dark:bg-black sm:px-12 shadow-lg rounded-xl">
+      {/* Loading Screen */}
+      {isLoadingTracks && (
+        <div className="fixed inset-0 flex items-center justify-center bg-zinc-50 dark:bg-black z-50">
+          <div className="text-center">
+            <Loader2 className="w-16 h-16 text-zinc-900 dark:text-zinc-100 animate-spin mx-auto mb-4" />
+            <p className="text-zinc-600 dark:text-zinc-400 text-lg">Loading your audio library...</p>
+          </div>
+        </div>
+      )}
+
+      {!isLoadingTracks && (
+        <main className="flex flex-col w-full max-w-md flex-col items-center gap-8 py-32 px-6 bg-white dark:bg-black sm:px-12 shadow-lg rounded-xl">
         {/* Track Info */}
         <div className="text-center">
           {currentTrack ? (
@@ -1233,7 +1250,8 @@ export default function Home() {
             </div>
           )}
         </div>
-      </main>
+        </main>
+      )}
 
       {/* Bookmark Modal */}
       <BookmarkModal
