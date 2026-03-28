@@ -834,6 +834,15 @@ export default function Home() {
         setConfigurations(prev => [...prev, newConfig]);
         console.log('[page handleImport] Created new config (has active):', newConfig.id, 'with name:', zipFilename);
       }
+      // Legacy import (no configurationName in metadata) - always create new configuration
+      else {
+        const newConfig = createConfiguration(`Legacy Import ${zipFilename}`);
+        targetConfigurationId = newConfig.id;
+        setActiveConfigurationIdState(newConfig.id);
+        setActiveConfigurationId(newConfig.id);
+        setConfigurations(prev => [...prev, newConfig]);
+        console.log('[page handleImport] Created new config (legacy):', newConfig.id);
+      }
 
       if (!targetConfigurationId) {
         throw new Error('No target configuration available for import');
