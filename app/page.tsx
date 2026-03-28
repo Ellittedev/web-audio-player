@@ -1545,6 +1545,7 @@ export default function Home() {
         onConfigurationRename={handleRenameConfiguration}
         onConfigurationSelect={handleConfigurationChange}
         onImport={handleImport}
+        importMessage={importMessage}
         isOpen={isConfigModalOpen}
         onClose={() => setIsConfigModalOpen(false)}
       />

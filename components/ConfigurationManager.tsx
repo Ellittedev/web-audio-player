@@ -32,6 +32,7 @@ interface ConfigurationManagerProps {
   onConfigurationRename: (configId: string, name: string) => Promise<void>;
   onConfigurationSelect?: (configId: string) => void;
   onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  importMessage?: { text: string; error: boolean } | null;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -44,6 +45,7 @@ export default function ConfigurationManager({
   onConfigurationRename,
   onConfigurationSelect,
   onImport,
+  importMessage,
   isOpen,
   onClose,
 }: ConfigurationManagerProps) {
@@ -53,9 +55,6 @@ export default function ConfigurationManager({
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [importName, setImportName] = useState("");
-  const [importMessage, setImportMessage] = useState<
-    { text: string; error: boolean } | null
-  >(null);
   const [isExportingAll, setIsExportingAll] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
