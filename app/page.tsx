@@ -11,7 +11,7 @@ import ABRepeatControls from "@/components/ABRepeatControls";
 import SwipeableItem from "@/components/SwipeableItem";
 import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, deleteAllAudiosAllConfigurations, type StoredAudio } from "@/lib/storage";
 import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip } from "@/lib/export";
-import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationId, getConfigurationStorageKeys, initializeDefaultConfiguration, type AudioPlayerConfiguration, createConfiguration, updateConfiguration, deleteConfiguration, deleteAllConfigurations } from "@/lib/configuration";
+import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationId, getConfigurationStorageKeys, initializeDefaultConfiguration, type AudioPlayerConfiguration, createConfiguration, updateConfiguration, deleteConfiguration, deleteAllConfigurations, clearActiveConfigurationId } from "@/lib/configuration";
 
 interface CustomTrack {
   id: string;
@@ -695,7 +695,8 @@ export default function Home() {
         localStorage.removeItem(activeLoopKey);
       }
       deleteAllConfigurations(); // Delete all configurations
-      
+      clearActiveConfigurationId(); // Clear active config ID
+
       // Clear all audio data from IndexedDB
       await deleteAllAudiosAllConfigurations();
 
@@ -704,6 +705,8 @@ export default function Home() {
       setTrackBookmarks({});
       setTrackLoops({});
       setActiveLoopId(null);
+      setConfigurations([]);
+      setActiveConfigurationIdState(null);
 
       // Clear blob URLs
       blobUrls.current.forEach((url) => URL.revokeObjectURL(url));
@@ -1121,16 +1124,8 @@ export default function Home() {
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
             Audio Player
           </h1>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsConfigSectionOpen(!isConfigSectionOpen)}
-              className="p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            >
-              <Settings className="h-5 w-5" />
-            </button>
-          </div>
         </div>
-        
+
         <div className="text-center">
           {currentTrack ? (
             <>

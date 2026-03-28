@@ -113,6 +113,13 @@ export function deleteAllConfigurations(): void {
 }
 
 /**
+ * Clear the active configuration ID
+ */
+export function clearActiveConfigurationId(): void {
+  localStorage.removeItem(ACTIVE_CONFIGURATION_KEY);
+}
+
+/**
  * Initialize default "Default" configuration if none exists
  */
 export function initializeDefaultConfiguration(): AudioPlayerConfiguration | null {
