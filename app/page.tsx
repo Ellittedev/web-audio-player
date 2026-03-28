@@ -781,6 +781,10 @@ export default function Home() {
     setImportMessage(null);
 
     try {
+      // Extract configuration name from zip filename (without extension)
+      const zipFilename = file.name.replace(/\.zip$/i, '');
+      console.log('[page handleImport] Zip filename:', zipFilename);
+
       // Load the zip file using JSZip
       const jszip = await import('jszip');
       const zip = new jszip.default();
@@ -794,36 +798,51 @@ export default function Home() {
 
       const config = JSON.parse(metaContent);
 
+      console.log('[page handleImport] Full config object:', config);
+      console.log('[page handleImport] config.metadata:', config.metadata);
+
       // Validate structure
       if (!config.metadata || !config.audios || !Array.isArray(config.bookmarks) || !Array.isArray(config.loops)) {
         throw new Error('Invalid configuration file format');
       }
 
-      // Check if this is a configuration export (has configurationId in metadata)
-      const isConfigExport = !!config.metadata.configurationId;
-      
+      // Check if this is a configuration export (has configurationName in metadata)
+      const isConfigExport = !!config.metadata.configurationName;
+
+      console.log('[page handleImport] isConfigExport:', isConfigExport);
+      console.log('[page handleImport] activeConfigurationId:', activeConfigurationId);
+      console.log('[page handleImport] config.metadata.configurationName:', config.metadata.configurationName);
+
       let targetConfigurationId = activeConfigurationId;
-      
+
       // If importing a configuration export and no active configuration, create new one
       if (isConfigExport && !activeConfigurationId) {
-        const newConfig = createConfiguration(`Imported Configuration ${Date.now()}`);
+        const newConfig = createConfiguration(zipFilename);
         targetConfigurationId = newConfig.id;
         setActiveConfigurationIdState(newConfig.id);
         setActiveConfigurationId(newConfig.id);
         setConfigurations(prev => [...prev, newConfig]);
+        console.log('[page handleImport] Created new config (no active):', newConfig.id);
       }
-      // If importing a configuration export and we have an active configuration, ask user what to do
+      // If importing a configuration export and we have an active configuration, create new one
       else if (isConfigExport && activeConfigurationId) {
-        // For now, we'll import into the active configuration
-        // In a full implementation, we'd show a dialog asking to create new or merge
-        targetConfigurationId = activeConfigurationId;
+        // Create new configuration with the zip filename as the name
+        const newConfig = createConfiguration(zipFilename);
+        targetConfigurationId = newConfig.id;
+        setActiveConfigurationIdState(newConfig.id);
+        setActiveConfigurationId(newConfig.id);
+        setConfigurations(prev => [...prev, newConfig]);
+        console.log('[page handleImport] Created new config (has active):', newConfig.id, 'with name:', zipFilename);
       }
 
       if (!targetConfigurationId) {
         throw new Error('No target configuration available for import');
       }
 
-      // Import audios
+      console.log('[page handleImport] Final targetConfigurationId:', targetConfigurationId);
+
+      // Import audios with new unique IDs to avoid duplicate key issues
+      const importedAudioIds: Record<string, string> = {}; // oldId -> newId mapping
       let importedCount = 0;
       let storedAudios: StoredAudio[] = [];
       for (const audioInfo of config.audios) {
@@ -832,6 +851,10 @@ export default function Home() {
         const existingAudio = storedAudios.find(a => a.id === audioInfo.id);
 
         if (!existingAudio) {
+          // Generate a new unique ID for this audio
+          const newAudioId = crypto.randomUUID();
+          importedAudioIds[audioInfo.id] = newAudioId;
+
           // Fetch the audio blob from the zip
           const audioFile = content.file(audioInfo.name);
           if (audioFile) {
@@ -846,7 +869,7 @@ export default function Home() {
             });
 
             const newAudio: StoredAudio = {
-              id: audioInfo.id,
+              id: newAudioId,
               name: audioInfo.name,
               dataUrl,
               size: audioInfo.size,
@@ -870,10 +893,10 @@ export default function Home() {
       for (const bookmark of config.bookmarks || []) {
         if (bookmark._audioFile) {
           const audio = allAudiosAfterImport.find(a => a.name === bookmark._audioFile);
-          if (audio && !newBookmarks[audio.id]) {
-            newBookmarks[audio.id] = [];
-          }
-          if (audio && newBookmarks[audio.id]) {
+          if (audio) {
+            if (!newBookmarks[audio.id]) {
+              newBookmarks[audio.id] = [];
+            }
             newBookmarks[audio.id].push({
               id: bookmark.id,
               name: bookmark.name,
@@ -887,10 +910,10 @@ export default function Home() {
       for (const loop of config.loops || []) {
         if (loop._audioFile) {
           const audio = allAudiosAfterImport.find(a => a.name === loop._audioFile);
-          if (audio && !newLoops[audio.id]) {
-            newLoops[audio.id] = [];
-          }
-          if (audio && newLoops[audio.id]) {
+          if (audio) {
+            if (!newLoops[audio.id]) {
+              newLoops[audio.id] = [];
+            }
             newLoops[audio.id].push({
               id: loop.id,
               name: loop.name,
@@ -1485,6 +1508,7 @@ export default function Home() {
         onConfigurationDelete={handleDeleteConfiguration}
         onConfigurationRename={handleRenameConfiguration}
         onConfigurationSelect={handleConfigurationChange}
+        onImport={handleImport}
         isOpen={isConfigModalOpen}
         onClose={() => setIsConfigModalOpen(false)}
       />

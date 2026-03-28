@@ -31,6 +31,7 @@ interface ConfigurationManagerProps {
   onConfigurationDelete: (configId: string) => Promise<void>;
   onConfigurationRename: (configId: string, name: string) => Promise<void>;
   onConfigurationSelect?: (configId: string) => void;
+  onImport: (event: React.ChangeEvent<HTMLInputElement>) => void;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -42,6 +43,7 @@ export default function ConfigurationManager({
   onConfigurationDelete,
   onConfigurationRename,
   onConfigurationSelect,
+  onImport,
   isOpen,
   onClose,
 }: ConfigurationManagerProps) {
@@ -50,6 +52,10 @@ export default function ConfigurationManager({
   const [renamingName, setRenamingName] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [importName, setImportName] = useState("");
+  const [importMessage, setImportMessage] = useState<
+    { text: string; error: boolean } | null
+  >(null);
   const [isExportingAll, setIsExportingAll] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -104,6 +110,15 @@ export default function ConfigurationManager({
   const handleSwitchConfiguration = (configId: string) => {
     setActiveConfigurationId(configId);
     onConfigurationSelect?.(configId);
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    // Delegate to parent's onImport handler which handles the actual import logic
+    onImport(event);
   };
 
   const handleExport = async (configId: string, configName: string) => {
@@ -182,6 +197,56 @@ export default function ConfigurationManager({
         </div>
 
         <div className="p-4 overflow-y-auto max-h-[calc(80vh-120px)]">
+          {/* Import Section */}
+          <div className="mb-4 p-3 bg-zinc-50 dark:bg-zinc-700/50 rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Import Configuration</span>
+              <button
+                onClick={handleImportClick}
+                disabled={isImporting}
+                className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded disabled:opacity-50"
+              >
+                {isImporting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Importing...
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4" />
+                    Import
+                  </>
+                )}
+              </button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".zip"
+              onChange={handleImport}
+              className="hidden"
+            />
+            {importMessage && (
+              <div
+                className={`text-sm mt-2 p-2 rounded ${
+                  importMessage.error
+                    ? "bg-red-100 text-red-800"
+                    : "bg-green-100 text-green-800"
+                }`}
+              >
+                {importMessage.text}
+              </div>
+            )}
+            <input
+              type="text"
+              placeholder="Import name (optional)"
+              value={importName}
+              onChange={(e) => setImportName(e.target.value)}
+              className="mt-2 w-full px-3 py-2 border border-zinc-300 dark:border-zinc-600 rounded text-sm disabled:bg-zinc-100 dark:disabled:bg-zinc-700"
+              disabled={isImporting}
+            />
+          </div>
+
           {/* Configuration List */}
           <div className="space-y-2">
             <div className="flex items-center justify-between mb-2">

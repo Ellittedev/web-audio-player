@@ -101,9 +101,10 @@ export async function exportConfiguration(configurationId: string): Promise<Blob
   // Get configuration name
   let configurationName = 'Unknown Configuration';
   try {
-    // We would need to import getConfigurationById, but to avoid circular dependencies,
-    // we'll just use the configurationId as the name if we can't get the actual name
-    configurationName = configurationId; // Fallback
+    const { getAllConfigurations } = await import('./configuration');
+    const configs = getAllConfigurations();
+    const config = configs.find(c => c.id === configurationId);
+    configurationName = config?.name || configurationId;
   } catch (error) {
     // Ignore error, use fallback
   }
