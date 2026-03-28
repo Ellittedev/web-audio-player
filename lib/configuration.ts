@@ -105,6 +105,14 @@ export function deleteConfiguration(id: string): boolean {
 }
 
 /**
+ * Delete all configurations
+ */
+export function deleteAllConfigurations(): void {
+  localStorage.removeItem(CONFIGURATIONS_KEY);
+  localStorage.removeItem(ACTIVE_CONFIGURATION_KEY);
+}
+
+/**
  * Initialize default "Default" configuration if none exists
  */
 export function initializeDefaultConfiguration(): AudioPlayerConfiguration | null {

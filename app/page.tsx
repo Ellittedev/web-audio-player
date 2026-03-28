@@ -9,9 +9,9 @@ import EditBookmarkModal from "@/components/EditBookmarkModal";
 import EditABLoopModal from "@/components/EditABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
 import SwipeableItem from "@/components/SwipeableItem";
-import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, type StoredAudio } from "@/lib/storage";
+import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, deleteAllAudiosAllConfigurations, type StoredAudio } from "@/lib/storage";
 import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip } from "@/lib/export";
-import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationId, getConfigurationStorageKeys, initializeDefaultConfiguration, type AudioPlayerConfiguration, createConfiguration, updateConfiguration, deleteConfiguration } from "@/lib/configuration";
+import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationId, getConfigurationStorageKeys, initializeDefaultConfiguration, type AudioPlayerConfiguration, createConfiguration, updateConfiguration, deleteConfiguration, deleteAllConfigurations } from "@/lib/configuration";
 
 interface CustomTrack {
   id: string;
@@ -681,24 +681,23 @@ export default function Home() {
   };
 
   const handleReset = async () => {
-    if (!confirm('Are you sure you want to reset everything? This will delete all audios, bookmarks, and loops for the active configuration.')) {
-      return;
-    }
-
-    if (!activeConfigurationId) {
-      alert('No active configuration selected.');
+    if (!confirm('Are you sure you want to reset everything? This will delete all audios, bookmarks, loops, and configurations.')) {
       return;
     }
 
     try {
-      // Clear IndexedDB audio data for active configuration
-      await deleteAllAudios(activeConfigurationId);
-
-      // Clear localStorage data for active configuration
-      const { bookmarksKey, loopsKey, activeLoopKey } = getConfigurationStorageKeys(activeConfigurationId);
-      localStorage.removeItem(bookmarksKey);
-      localStorage.removeItem(loopsKey);
-      localStorage.removeItem(activeLoopKey);
+      // Delete all configurations from localStorage
+      const configs = await getAllConfigurations();
+      for (const config of configs) {
+        const { bookmarksKey, loopsKey, activeLoopKey } = getConfigurationStorageKeys(config.id);
+        localStorage.removeItem(bookmarksKey);
+        localStorage.removeItem(loopsKey);
+        localStorage.removeItem(activeLoopKey);
+      }
+      deleteAllConfigurations(); // Delete all configurations
+      
+      // Clear all audio data from IndexedDB
+      await deleteAllAudiosAllConfigurations();
 
       // Clear tracks state
       setCustomTracks([]);
@@ -1132,27 +1131,6 @@ export default function Home() {
           </div>
         </div>
         
-        {/* Configuration Manager Button */}
-        <div className="w-full mb-4">
-          <button
-            onClick={() => {
-              console.log('Manage Configurations button clicked');
-              console.log('isConfigSectionOpen before:', isConfigSectionOpen);
-              setIsConfigSectionOpen(true);
-              console.log('isConfigSectionOpen after:', isConfigSectionOpen);
-              console.log('configurations:', configurations);
-              console.log('activeConfigurationId:', activeConfigurationId);
-              // Open the ConfigurationManager modal
-              setIsConfigModalOpen(true);
-            }}
-            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Manage Configurations</span>
-          </button>
-        </div>
-        
-        {/* Track Info */}
         <div className="text-center">
           {currentTrack ? (
             <>
@@ -1620,7 +1598,7 @@ export default function Home() {
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    <span>Download current configuration</span>
+                    <span>Download all configurations</span>
                   </>
                 )}
               </button>
@@ -1648,7 +1626,7 @@ export default function Home() {
                 ) : (
                   <>
                     <RotateCcw className="w-4 h-4" />
-                    <span>Upload external configuration</span>
+                    <span>Import configuration</span>
                   </>
                 )}
               </label>

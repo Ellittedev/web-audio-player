@@ -158,7 +158,7 @@ export async function deleteAllAudios(configurationId: string): Promise<void> {
     const transaction = database.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
     const index = store.index('byConfigurationId');
-    
+
     // Open a cursor to iterate through all records with this configurationId
     const request = index.openCursor(IDBKeyRange.only(configurationId));
 
@@ -175,6 +175,20 @@ export async function deleteAllAudios(configurationId: string): Promise<void> {
       }
     };
 
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function deleteAllAudiosAllConfigurations(): Promise<void> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    
+    // Clear all records
+    const request = store.clear();
+    
+    request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
 }
