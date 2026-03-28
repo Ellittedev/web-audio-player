@@ -78,31 +78,20 @@ export default function AudioUploader({ onUploadComplete, activeConfigurationId 
     try {
       const id = crypto.randomUUID();
 
-      // Convert file to base64 for storage
-      const reader = new FileReader();
-      const dataUrlPromise = new Promise<string>((resolve, reject) => {
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error("Failed to read file"));
-        reader.readAsDataURL(file);
-      });
-
-      const dataUrl = await dataUrlPromise;
-
-      // Store in IndexedDB for persistence across page reloads
+      // Store blob directly in IndexedDB for large files (no base64 conversion)
       const storedAudio: StoredAudio = {
         id,
         name: file.name,
-        dataUrl,
+        blob: file,
         size: file.size,
         type: file.type,
         configurationId: activeConfigurationId,
+        usesBlob: true, // Flag to indicate blob storage
       };
       await storeAudio(storedAudio);
 
-      // Create blob URL from the data URL for playback
-      const response = await fetch(dataUrl);
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
+      // Create blob URL directly from the uploaded file for playback
+      const url = URL.createObjectURL(file);
       blobUrls.current.add(url);
 
       onUploadComplete({
@@ -115,7 +104,7 @@ export default function AudioUploader({ onUploadComplete, activeConfigurationId 
     } finally {
       setProcessing(false);
     }
-  }, [onUploadComplete]);
+  }, [onUploadComplete, activeConfigurationId]);
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();

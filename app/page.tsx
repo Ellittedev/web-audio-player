@@ -196,7 +196,7 @@ export default function Home() {
   // Load tracks from IndexedDB on mount (scoped to active configuration)
   const loadTracks = useCallback(async () => {
     console.log('loadTracks called with activeConfigurationId:', activeConfigurationId);
-    
+
     if (!activeConfigurationId) {
       setIsLoadingTracks(false);
       return;
@@ -211,27 +211,35 @@ export default function Home() {
       // Convert stored audio data to blob URLs
       const loadedTracks: CustomTrack[] = [];
       for (const storedAudio of storedAudios) {
-        // The dataUrl is a base64 data URL, convert it to a blob URL
-        const commaIndex = storedAudio.dataUrl.indexOf(',');
-        const meta = storedAudio.dataUrl.substring(0, commaIndex);
-        let base64Data = storedAudio.dataUrl.substring(commaIndex + 1);
-        
-        // Remove any whitespace/newlines from base64 data
-        base64Data = base64Data.replace(/\s+/g, '');
-        
-        const mimeType = meta.split(':')[1]?.split(';')[0] || 'audio/mpeg';
+        let url: string;
+        let mimeType: string;
 
-        // Convert base64 to blob
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        if (storedAudio.usesBlob && storedAudio.blob) {
+          // New blob storage - create blob URL directly (fast for large files)
+          mimeType = storedAudio.type;
+          url = URL.createObjectURL(storedAudio.blob);
+          blobUrls.current.set(storedAudio.id, url);
+        } else {
+          // Legacy dataUrl storage - convert base64 to blob (slow but necessary for old data)
+          mimeType = storedAudio.type || 'audio/mpeg';
+          const commaIndex = storedAudio.dataUrl!.indexOf(',');
+          const meta = storedAudio.dataUrl!.substring(0, commaIndex);
+          let base64Data = storedAudio.dataUrl!.substring(commaIndex + 1);
+
+          // Remove any whitespace/newlines from base64 data
+          base64Data = base64Data.replace(/\s+/g, '');
+
+          // Convert base64 to blob
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: mimeType });
+          url = URL.createObjectURL(blob);
+          blobUrls.current.set(storedAudio.id, url);
         }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: mimeType });
-
-        const url = URL.createObjectURL(blob);
-        blobUrls.current.set(storedAudio.id, url);
 
         loadedTracks.push({
           id: storedAudio.id,
@@ -917,21 +925,15 @@ export default function Home() {
           if (audioFile) {
             const blob = await audioFile.async('blob');
 
-            // Convert blob to base64 data URL for storage in IndexedDB
-            const reader = new FileReader();
-            const dataUrl = await new Promise<string>((resolve, reject) => {
-              reader.onload = () => resolve(reader.result as string);
-              reader.onerror = () => reject(new Error("Failed to read file"));
-              reader.readAsDataURL(blob);
-            });
-
+            // Store blob directly for new import (no base64 conversion)
             const newAudio: StoredAudio = {
               id: newAudioId,
               name: audioInfo.name,
-              dataUrl,
+              blob,
               size: audioInfo.size,
               type: audioInfo.type,
-              configurationId: targetConfigurationId
+              configurationId: targetConfigurationId,
+              usesBlob: true // Flag to indicate blob storage
             };
 
             await storeAudio(newAudio);
@@ -1009,19 +1011,29 @@ export default function Home() {
       const updatedAudios = await getAllAudios(targetConfigurationId);
       const updatedTracks: CustomTrack[] = [];
       for (const storedAudio of updatedAudios) {
-        const [meta, base64Data] = storedAudio.dataUrl.split(',');
-        const mimeType = meta.match(/:(.*?);/)?.[1] || 'audio/mpeg';
+        let url: string;
+        let mimeType: string;
 
-        const byteCharacters = atob(base64Data);
-        const byteNumbers = new Array(byteCharacters.length);
-        for (let i = 0; i < byteCharacters.length; i++) {
-          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        if (storedAudio.usesBlob && storedAudio.blob) {
+          // New blob storage - create blob URL directly
+          mimeType = storedAudio.type;
+          url = URL.createObjectURL(storedAudio.blob);
+          blobUrls.current.set(storedAudio.id, url);
+        } else {
+          // Legacy dataUrl storage
+          const [meta, base64Data] = storedAudio.dataUrl!.split(',');
+          mimeType = meta.match(/:(.*?);/)?.[1] || 'audio/mpeg';
+
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: mimeType });
+          url = URL.createObjectURL(blob);
+          blobUrls.current.set(storedAudio.id, url);
         }
-        const byteArray = new Uint8Array(byteNumbers);
-        const blob = new Blob([byteArray], { type: mimeType });
-
-        const url = URL.createObjectURL(blob);
-        blobUrls.current.set(storedAudio.id, url);
 
         updatedTracks.push({
           id: storedAudio.id,
@@ -1031,11 +1043,16 @@ export default function Home() {
       }
       setCustomTracks(updatedTracks);
 
-      // Clean up blob URLs for imported audios
+      // Clean up blob URLs for imported audios - revoke any old blob URLs
       for (const audio of config.audios) {
-        const dataUrl = storedAudios.find(a => a.id === audio.id)?.dataUrl;
-        if (dataUrl) {
-          URL.revokeObjectURL(dataUrl);
+        const storedAudio = storedAudios.find(a => a.id === audio.id);
+        if (storedAudio) {
+          // Revoke blob URL if it exists
+          const existingUrl = blobUrls.current.get(storedAudio.id);
+          if (existingUrl) {
+            URL.revokeObjectURL(existingUrl);
+            blobUrls.current.delete(storedAudio.id);
+          }
         }
       }
 

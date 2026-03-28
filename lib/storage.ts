@@ -1,14 +1,16 @@
 const DB_NAME = 'AudioPlayerDB';
-const DB_VERSION = 3; // Incremented to trigger upgrade for index creation
+const DB_VERSION = 4; // Incremented to add blob storage support
 const STORE_NAME = 'audios';
 
 export interface StoredAudio {
   id: string;
   name: string;
-  dataUrl: string;
+  dataUrl?: string; // Legacy support - will be phased out
+  blob?: Blob; // New: Store blob directly for large files
   size: number;
   type: string;
   configurationId: string; // Added to separate configurations
+  usesBlob: boolean; // Flag to indicate if using blob storage
 }
 
 let db: IDBDatabase | null = null;
@@ -30,7 +32,7 @@ export function openDB(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event) => {
       const database = (event.target as IDBOpenDBRequest).result;
-      
+
       // Create object store if it doesn't exist
       if (!database.objectStoreNames.contains(STORE_NAME)) {
         const store = database.createObjectStore(STORE_NAME, { keyPath: 'id' });

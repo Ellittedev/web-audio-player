@@ -66,8 +66,15 @@ export async function exportConfiguration(configurationId: string): Promise<Blob
   // Add audio files to zip
   for (const audio of storedAudios) {
     try {
-      const response = await fetch(audio.dataUrl);
-      const blob = await response.blob();
+      let blob: Blob;
+      if (audio.usesBlob && audio.blob) {
+        // New blob storage - use blob directly
+        blob = audio.blob;
+      } else {
+        // Legacy dataUrl storage
+        const response = await fetch(audio.dataUrl!);
+        blob = await response.blob();
+      }
       zip.file(audio.name, blob);
     } catch (error) {
       console.error(`Failed to add audio ${audio.name} to zip:`, error);
@@ -155,7 +162,9 @@ export async function exportConfiguration(configurationId: string): Promise<Blob
       id: a.id,
       name: a.name,
       size: a.size,
-      type: a.type
+      type: a.type,
+      usesBlob: a.usesBlob,
+      dataUrl: a.dataUrl // Include dataUrl for backward compatibility
     })),
     bookmarks: allBookmarks,
     loops: allLoops
