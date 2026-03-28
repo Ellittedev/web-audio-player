@@ -12,9 +12,10 @@ interface AudioFile {
 
 interface AudioUploaderProps {
   onUploadComplete: (audioFile: AudioFile) => void;
+  activeConfigurationId: string;
 }
 
-export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) {
+export default function AudioUploader({ onUploadComplete, activeConfigurationId }: AudioUploaderProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -94,6 +95,7 @@ export default function AudioUploader({ onUploadComplete }: AudioUploaderProps) 
         dataUrl,
         size: file.size,
         type: file.type,
+        configurationId: activeConfigurationId,
       };
       await storeAudio(storedAudio);
 

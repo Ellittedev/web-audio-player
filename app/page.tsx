@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw, Download, SkipForward, SkipBack, Loader2 } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw, Download, SkipForward, SkipBack, Loader2, Settings, Plus } from "lucide-react";
 import AudioUploader from "@/components/AudioUploader";
 import BookmarkModal from "@/components/BookmarkModal";
 import ABLoopModal from "@/components/ABLoopModal";
@@ -11,6 +11,8 @@ import ABRepeatControls from "@/components/ABRepeatControls";
 import SwipeableItem from "@/components/SwipeableItem";
 import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, type StoredAudio } from "@/lib/storage";
 import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip } from "@/lib/export";
+import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationId, getConfigurationStorageKeys, initializeDefaultConfiguration, type AudioPlayerConfiguration, createConfiguration, updateConfiguration } from "@/lib/configuration";
+import ConfigurationManager from "@/components/ConfigurationManager";
 
 interface CustomTrack {
   id: string;
@@ -45,10 +47,14 @@ export default function Home() {
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
 
-  // Bookmarks: map of trackId -> bookmarks array
+  // Configuration state
+  const [activeConfigurationId, setActiveConfigurationIdState] = useState<string | null>(null);
+  const [configurations, setConfigurations] = useState<AudioPlayerConfiguration[]>([]);
+
+  // Bookmarks: map of trackId -> bookmarks array (scoped to active configuration)
   const [trackBookmarks, setTrackBookmarks] = useState<Record<string, Bookmark[]>>({});
 
-  // AB Loops: map of trackId -> loops array
+  // AB Loops: map of trackId -> loops array (scoped to active configuration)
   const [trackLoops, setTrackLoops] = useState<Record<string, ABLoop[]>>({});
   const [activeLoopId, setActiveLoopId] = useState<string | null>(null);
 
@@ -74,6 +80,7 @@ export default function Home() {
 
   // Configuration section state
   const [isConfigSectionOpen, setIsConfigSectionOpen] = useState(false);
+  const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<{ text: string; error: boolean } | null>(null);
 
@@ -89,81 +96,129 @@ export default function Home() {
     };
   }, []);
 
-  // Load bookmarks from localStorage on mount
+  // Load configurations and initialize on mount
   useEffect(() => {
+    const storedConfigs = getAllConfigurations();
+    setConfigurations(storedConfigs);
+    
+    const activeConfigId = getActiveConfigurationId();
+    setActiveConfigurationIdState(activeConfigId);
+    
+    // If no active configuration, initialize default
+    if (!activeConfigId && storedConfigs.length > 0) {
+      setActiveConfigurationIdState(storedConfigs[0].id);
+      setActiveConfigurationId(storedConfigs[0].id);
+    }
+  }, []);
+
+  // Load bookmarks from localStorage on mount (scoped to active configuration)
+  useEffect(() => {
+    if (!activeConfigurationId) return;
+    
     try {
-      const storedBookmarks = localStorage.getItem('audioPlayerBookmarks');
+      const { bookmarksKey } = getConfigurationStorageKeys(activeConfigurationId);
+      const storedBookmarks = localStorage.getItem(bookmarksKey);
       if (storedBookmarks) {
         setTrackBookmarks(JSON.parse(storedBookmarks));
       }
     } catch (error) {
       console.error('Failed to load bookmarks from localStorage:', error);
     }
-  }, []);
+  }, [activeConfigurationId]);
 
-  // Save bookmarks to localStorage whenever they change
+  // Save bookmarks to localStorage whenever they change (scoped to active configuration)
   useEffect(() => {
+    if (!activeConfigurationId) return;
+    
     try {
-      localStorage.setItem('audioPlayerBookmarks', JSON.stringify(trackBookmarks));
+      const { bookmarksKey } = getConfigurationStorageKeys(activeConfigurationId);
+      localStorage.setItem(bookmarksKey, JSON.stringify(trackBookmarks));
     } catch (error) {
       console.error('Failed to save bookmarks to localStorage:', error);
     }
-  }, [trackBookmarks]);
+  }, [activeConfigurationId, trackBookmarks]);
 
-  // Load AB loops from localStorage on mount
+  // Load AB loops from localStorage on mount (scoped to active configuration)
   useEffect(() => {
+    if (!activeConfigurationId) return;
+    
     try {
-      const storedLoops = localStorage.getItem('audioPlayerABLoops');
+      const { loopsKey } = getConfigurationStorageKeys(activeConfigurationId);
+      const storedLoops = localStorage.getItem(loopsKey);
       if (storedLoops) {
         setTrackLoops(JSON.parse(storedLoops));
       }
     } catch (error) {
       console.error('Failed to load AB loops from localStorage:', error);
     }
-  }, []);
+  }, [activeConfigurationId]);
 
-  // Save AB loops to localStorage whenever they change
+  // Save AB loops to localStorage whenever they change (scoped to active configuration)
   useEffect(() => {
+    if (!activeConfigurationId) return;
+    
     try {
-      localStorage.setItem('audioPlayerABLoops', JSON.stringify(trackLoops));
+      const { loopsKey } = getConfigurationStorageKeys(activeConfigurationId);
+      localStorage.setItem(loopsKey, JSON.stringify(trackLoops));
     } catch (error) {
       console.error('Failed to save AB loops to localStorage:', error);
     }
-  }, [trackLoops]);
+  }, [activeConfigurationId, trackLoops]);
 
-  // Load active loop from localStorage on mount
+  // Load active loop from localStorage on mount (scoped to active configuration)
   useEffect(() => {
+    if (!activeConfigurationId) return;
+    
     try {
-      const storedActiveLoop = localStorage.getItem('audioPlayerActiveLoop');
+      const { activeLoopKey } = getConfigurationStorageKeys(activeConfigurationId);
+      const storedActiveLoop = localStorage.getItem(activeLoopKey);
       if (storedActiveLoop) {
         setActiveLoopId(JSON.parse(storedActiveLoop));
       }
     } catch (error) {
       console.error('Failed to load active loop from localStorage:', error);
     }
-  }, []);
+  }, [activeConfigurationId]);
 
-  // Save active loop to localStorage whenever it changes
+  // Save active loop to localStorage whenever it changes (scoped to active configuration)
   useEffect(() => {
+    if (!activeConfigurationId) return;
+    
     try {
-      localStorage.setItem('audioPlayerActiveLoop', JSON.stringify(activeLoopId));
+      const { activeLoopKey } = getConfigurationStorageKeys(activeConfigurationId);
+      localStorage.setItem(activeLoopKey, JSON.stringify(activeLoopId));
     } catch (error) {
       console.error('Failed to save active loop to localStorage:', error);
     }
-  }, [activeLoopId]);
+  }, [activeConfigurationId, activeLoopId]);
 
-  // Load tracks from IndexedDB on mount
+  // Load tracks from IndexedDB on mount (scoped to active configuration)
   const loadTracks = useCallback(async () => {
+    console.log('loadTracks called with activeConfigurationId:', activeConfigurationId);
+    
+    if (!activeConfigurationId) {
+      setIsLoadingTracks(false);
+      return;
+    }
+
     setIsLoadingTracks(true);
     try {
-      const storedAudios = await getAllAudios();
+      console.log('Fetching audios for configuration:', activeConfigurationId);
+      const storedAudios = await getAllAudios(activeConfigurationId);
+      console.log('Loaded audios:', storedAudios.length);
 
       // Convert stored audio data to blob URLs
       const loadedTracks: CustomTrack[] = [];
       for (const storedAudio of storedAudios) {
         // The dataUrl is a base64 data URL, convert it to a blob URL
-        const [meta, base64Data] = storedAudio.dataUrl.split(',');
-        const mimeType = meta.match(/:(.*?);/)?.[1] || 'audio/mpeg';
+        const commaIndex = storedAudio.dataUrl.indexOf(',');
+        const meta = storedAudio.dataUrl.substring(0, commaIndex);
+        let base64Data = storedAudio.dataUrl.substring(commaIndex + 1);
+        
+        // Remove any whitespace/newlines from base64 data
+        base64Data = base64Data.replace(/\s+/g, '');
+        
+        const mimeType = meta.split(':')[1]?.split(';')[0] || 'audio/mpeg';
 
         // Convert base64 to blob
         const byteCharacters = atob(base64Data);
@@ -190,22 +245,36 @@ export default function Home() {
       console.error('Failed to load tracks from IndexedDB:', error);
       setIsLoadingTracks(false);
     }
-  }, []);
+  }, [activeConfigurationId]);
 
   useEffect(() => {
     loadTracks();
   }, [loadTracks]);
 
-  const handleUploadComplete = (audioFile: { name: string; url: string; id: string }) => {
+  const handleUploadComplete = async (audioFile: { name: string; url: string; id: string }) => {
+    if (!activeConfigurationId) {
+      alert('No active configuration. Please create or select a configuration first.');
+      return;
+    }
+
     const newTrack: CustomTrack = {
       id: audioFile.id,
       title: audioFile.name.replace(/\.[^/.]+$/, ""), // Remove extension
       src: audioFile.url,
     };
+
+    // Note: AudioUploader already stored the audio in IndexedDB with the correct dataUrl.
+    // We don't need to store it again here.
+
     setCustomTracks((prev) => [...prev, newTrack]);
   };
 
   const handleDeleteTrack = async (trackId: string, trackSrc: string) => {
+    if (!activeConfigurationId) {
+      alert('No active configuration. Please create or select a configuration first.');
+      return;
+    }
+    
     // Revoke the blob URL
     const url = blobUrls.current.get(trackId);
     if (url) {
@@ -213,8 +282,8 @@ export default function Home() {
       blobUrls.current.delete(trackId);
     }
 
-    // Delete from IndexedDB
-    await deleteAudio(trackId);
+    // Delete from IndexedDB (scoped to active configuration)
+    await deleteAudio(trackId, activeConfigurationId);
 
     // Update tracks state
     setCustomTracks((prev) => prev.filter((t) => t.id !== trackId));
@@ -518,9 +587,14 @@ export default function Home() {
   };
 
   const handleExport = async () => {
+    if (!activeConfigurationId) {
+      alert('No active configuration to export.');
+      return;
+    }
+    
     setIsExporting(true);
     try {
-      const blob = await exportConfiguration();
+      const blob = await exportConfiguration(activeConfigurationId);
       downloadExport(blob);
     } catch (error) {
       console.error('Export failed:', error);
@@ -532,6 +606,10 @@ export default function Home() {
 
   const handleExportLoop = async (loopId: string, loopName: string, aPoint: number, bPoint: number) => {
     if (!currentTrack) return;
+    if (!activeConfigurationId) {
+      alert('No active configuration. Please create or select a configuration first.');
+      return;
+    }
 
     setIsLoopExporting(true);
     try {
@@ -541,7 +619,8 @@ export default function Home() {
         currentTrack.src,
         currentTrack.title,
         aPoint,
-        bPoint
+        bPoint,
+        activeConfigurationId
       );
       downloadLoopExport(exportInfo);
     } catch (error) {
@@ -554,6 +633,10 @@ export default function Home() {
 
   const handleExportAllLoops = async () => {
     if (!currentTrack) return;
+    if (!activeConfigurationId) {
+      alert('No active configuration. Please create or select a configuration first.');
+      return;
+    }
 
     const loops = trackLoops[currentTrack.id] || [];
     if (loops.length === 0) {
@@ -567,7 +650,8 @@ export default function Home() {
       const blob = await exportAllLoopsAsZip(
         [currentTrack],
         trackBookmarks,
-        trackLoops
+        trackLoops,
+        activeConfigurationId
       );
       downloadExport(blob, `loops-export-${Date.now()}.zip`);
     } catch (error) {
@@ -579,18 +663,24 @@ export default function Home() {
   };
 
   const handleReset = async () => {
-    if (!confirm('Are you sure you want to reset everything? This will delete all audios, bookmarks, and loops.')) {
+    if (!confirm('Are you sure you want to reset everything? This will delete all audios, bookmarks, and loops for the active configuration.')) {
+      return;
+    }
+
+    if (!activeConfigurationId) {
+      alert('No active configuration selected.');
       return;
     }
 
     try {
-      // Clear IndexedDB audio data
-      await deleteAllAudios();
-      
-      // Clear localStorage data
-      localStorage.removeItem('audioPlayerBookmarks');
-      localStorage.removeItem('audioPlayerABLoops');
-      localStorage.removeItem('audioPlayerActiveLoop');
+      // Clear IndexedDB audio data for active configuration
+      await deleteAllAudios(activeConfigurationId);
+
+      // Clear localStorage data for active configuration
+      const { bookmarksKey, loopsKey, activeLoopKey } = getConfigurationStorageKeys(activeConfigurationId);
+      localStorage.removeItem(bookmarksKey);
+      localStorage.removeItem(loopsKey);
+      localStorage.removeItem(activeLoopKey);
 
       // Clear tracks state
       setCustomTracks([]);
@@ -602,13 +692,81 @@ export default function Home() {
       blobUrls.current.forEach((url) => URL.revokeObjectURL(url));
       blobUrls.current.clear();
 
-      // Reload to reset IndexedDB connection
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
+      // Reload tracks
+      await loadTracks();
     } catch (error) {
       console.error('Failed to reset:', error);
       alert('Failed to reset. Please try again or refresh the page.');
+    }
+  };
+
+  const handleCreateConfiguration = async (name: string) => {
+    console.log('handleCreateConfiguration called with:', name);
+    const newConfig = createConfiguration(name);
+    console.log('Created new config:', newConfig);
+    setConfigurations(prev => [...prev, newConfig]);
+    setActiveConfigurationIdState(newConfig.id);
+    setActiveConfigurationId(newConfig.id);
+  };
+
+  const handleConfigurationChange = (configurationId: string) => {
+    console.log('handleConfigurationChange called with:', configurationId);
+    setActiveConfigurationIdState(configurationId);
+    setActiveConfigurationId(configurationId);
+    loadTracks();
+  };
+
+  const handleDeleteConfiguration = async (configId: string) => {
+    console.log('handleDeleteConfiguration called with:', configId);
+    if (configurations.length <= 1) {
+      alert('Cannot delete the last configuration');
+      return;
+    }
+
+    if (!confirm('Are you sure you want to delete this configuration? This will delete all associated audios, bookmarks, and loops.')) {
+      return;
+    }
+
+    try {
+      await deleteAllAudios(configId);
+      const { bookmarksKey, loopsKey, activeLoopKey } = getConfigurationStorageKeys(configId);
+      localStorage.removeItem(bookmarksKey);
+      localStorage.removeItem(loopsKey);
+      localStorage.removeItem(activeLoopKey);
+
+      setConfigurations(prev => prev.filter(config => config.id !== configId));
+
+      // If deleting active config, switch to first one
+      if (activeConfigurationId === configId) {
+        const newActiveId = configurations.find(c => c.id !== configId)?.id || configurations[0].id;
+        setActiveConfigurationIdState(newActiveId);
+        setActiveConfigurationId(newActiveId);
+        loadTracks();
+      }
+    } catch (error) {
+      console.error('Failed to delete configuration:', error);
+      alert('Failed to delete configuration');
+    }
+  };
+
+  const handleRenameConfiguration = async (configId: string, name: string) => {
+    try {
+      const updatedConfig = updateConfiguration(configId, { name });
+      if (updatedConfig) {
+        setConfigurations(prev =>
+          prev.map(config =>
+            config.id === configId ? updatedConfig : config
+          )
+        );
+
+        if (activeConfigurationId === configId) {
+          setActiveConfigurationIdState(updatedConfig.id);
+          setActiveConfigurationId(updatedConfig.id);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to rename configuration:', error);
+      alert('Failed to rename configuration');
     }
   };
 
@@ -624,7 +782,7 @@ export default function Home() {
       const jszip = await import('jszip');
       const zip = new jszip.default();
       const content = await zip.loadAsync(file);
-      
+
       // Load meta.json
       const metaContent = await content.file('meta.json')?.async('string');
       if (!metaContent) {
@@ -632,26 +790,50 @@ export default function Home() {
       }
 
       const config = JSON.parse(metaContent);
-      
+
       // Validate structure
-      if (!config.metadata || !config.audios || !Array.isArray(config.bookmarks) && !Array.isArray(config.loops)) {
+      if (!config.metadata || !config.audios || !Array.isArray(config.bookmarks) || !Array.isArray(config.loops)) {
         throw new Error('Invalid configuration file format');
       }
 
-      // Get current audios to check what's missing
-      const storedAudios = await getAllAudios();
+      // Check if this is a configuration export (has configurationId in metadata)
+      const isConfigExport = !!config.metadata.configurationId;
+      
+      let targetConfigurationId = activeConfigurationId;
+      
+      // If importing a configuration export and no active configuration, create new one
+      if (isConfigExport && !activeConfigurationId) {
+        const newConfig = createConfiguration(`Imported Configuration ${Date.now()}`);
+        targetConfigurationId = newConfig.id;
+        setActiveConfigurationIdState(newConfig.id);
+        setActiveConfigurationId(newConfig.id);
+        setConfigurations(prev => [...prev, newConfig]);
+      }
+      // If importing a configuration export and we have an active configuration, ask user what to do
+      else if (isConfigExport && activeConfigurationId) {
+        // For now, we'll import into the active configuration
+        // In a full implementation, we'd show a dialog asking to create new or merge
+        targetConfigurationId = activeConfigurationId;
+      }
+
+      if (!targetConfigurationId) {
+        throw new Error('No target configuration available for import');
+      }
 
       // Import audios
       let importedCount = 0;
+      let storedAudios: StoredAudio[] = [];
       for (const audioInfo of config.audios) {
+        // Check if audio already exists in target configuration
+        storedAudios = await getAllAudios(targetConfigurationId);
         const existingAudio = storedAudios.find(a => a.id === audioInfo.id);
-        
+
         if (!existingAudio) {
           // Fetch the audio blob from the zip
           const audioFile = content.file(audioInfo.name);
           if (audioFile) {
             const blob = await audioFile.async('blob');
-            
+
             // Convert blob to base64 data URL for storage in IndexedDB
             const reader = new FileReader();
             const dataUrl = await new Promise<string>((resolve, reject) => {
@@ -665,7 +847,8 @@ export default function Home() {
               name: audioInfo.name,
               dataUrl,
               size: audioInfo.size,
-              type: audioInfo.type
+              type: audioInfo.type,
+              configurationId: targetConfigurationId
             };
 
             await storeAudio(newAudio);
@@ -679,7 +862,7 @@ export default function Home() {
       const newLoops: Record<string, ABLoop[]> = {};
 
       // Get all audios after import to match bookmarks/loops with correct audio IDs
-      const allAudiosAfterImport = await getAllAudios();
+      const allAudiosAfterImport = await getAllAudios(targetConfigurationId);
 
       for (const bookmark of config.bookmarks || []) {
         if (bookmark._audioFile) {
@@ -716,7 +899,7 @@ export default function Home() {
         }
       }
 
-      // Merge with existing data
+      // Merge with existing data for target configuration
       setTrackBookmarks(prev => ({
         ...prev,
         ...newBookmarks,
@@ -740,12 +923,12 @@ export default function Home() {
       }));
 
       // Reload tracks from IndexedDB to include newly imported audios
-      const updatedAudios = await getAllAudios();
+      const updatedAudios = await getAllAudios(targetConfigurationId);
       const updatedTracks: CustomTrack[] = [];
       for (const storedAudio of updatedAudios) {
         const [meta, base64Data] = storedAudio.dataUrl.split(',');
         const mimeType = meta.match(/:(.*?);/)?.[1] || 'audio/mpeg';
-        
+
         const byteCharacters = atob(base64Data);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -753,7 +936,7 @@ export default function Home() {
         }
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: mimeType });
-        
+
         const url = URL.createObjectURL(blob);
         blobUrls.current.set(storedAudio.id, url);
 
@@ -836,6 +1019,41 @@ export default function Home() {
 
       {!isLoadingTracks && (
         <main className="flex flex-col w-full max-w-md flex-col items-center gap-8 py-32 px-6 bg-white dark:bg-black sm:px-12 shadow-lg rounded-xl">
+        {/* Header */}
+        <div className="flex items-center justify-between w-full mb-6">
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            Audio Player
+          </h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsConfigSectionOpen(!isConfigSectionOpen)}
+              className="p-2 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            >
+              <Settings className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+        
+        {/* Configuration Manager Button */}
+        <div className="w-full mb-4">
+          <button
+            onClick={() => {
+              console.log('Manage Configurations button clicked');
+              console.log('isConfigSectionOpen before:', isConfigSectionOpen);
+              setIsConfigSectionOpen(true);
+              console.log('isConfigSectionOpen after:', isConfigSectionOpen);
+              console.log('configurations:', configurations);
+              console.log('activeConfigurationId:', activeConfigurationId);
+              // Open the ConfigurationManager modal
+              setIsConfigModalOpen(true);
+            }}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Manage Configurations</span>
+          </button>
+        </div>
+        
         {/* Track Info */}
         <div className="text-center">
           {currentTrack ? (
@@ -1167,7 +1385,10 @@ export default function Home() {
           <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
             Upload Your Own Audio
           </h3>
-          <AudioUploader onUploadComplete={handleUploadComplete} />
+          <AudioUploader 
+            onUploadComplete={handleUploadComplete} 
+            activeConfigurationId={activeConfigurationId || configurations[0]?.id || ''} 
+          />
         </div>
 
         {/* Configuration Section */}
@@ -1252,6 +1473,18 @@ export default function Home() {
         </div>
         </main>
       )}
+
+      {/* Configuration Manager Modal */}
+      <ConfigurationManager
+        configurations={configurations}
+        activeConfigurationId={activeConfigurationId}
+        onConfigurationCreate={handleCreateConfiguration}
+        onConfigurationDelete={handleDeleteConfiguration}
+        onConfigurationRename={handleRenameConfiguration}
+        onConfigurationSelect={handleConfigurationChange}
+        isOpen={isConfigModalOpen}
+        onClose={() => setIsConfigModalOpen(false)}
+      />
 
       {/* Bookmark Modal */}
       <BookmarkModal
