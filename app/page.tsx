@@ -11,7 +11,7 @@ import ABRepeatControls from "@/components/ABRepeatControls";
 import SwipeableItem from "@/components/SwipeableItem";
 import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, type StoredAudio } from "@/lib/storage";
 import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip } from "@/lib/export";
-import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationId, getConfigurationStorageKeys, initializeDefaultConfiguration, type AudioPlayerConfiguration, createConfiguration, updateConfiguration } from "@/lib/configuration";
+import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationId, getConfigurationStorageKeys, initializeDefaultConfiguration, type AudioPlayerConfiguration, createConfiguration, updateConfiguration, deleteConfiguration } from "@/lib/configuration";
 import ConfigurationManager from "@/components/ConfigurationManager";
 
 interface CustomTrack {
@@ -733,6 +733,9 @@ export default function Home() {
       localStorage.removeItem(bookmarksKey);
       localStorage.removeItem(loopsKey);
       localStorage.removeItem(activeLoopKey);
+
+      // Delete configuration from localStorage
+      deleteConfiguration(configId);
 
       setConfigurations(prev => prev.filter(config => config.id !== configId));
 
