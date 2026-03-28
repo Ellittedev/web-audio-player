@@ -796,7 +796,12 @@ export default function Home() {
         throw new Error('Invalid configuration file: missing meta.json');
       }
 
-      const config = JSON.parse(metaContent);
+      let config;
+      try {
+        config = JSON.parse(metaContent);
+      } catch (parseError) {
+        throw new Error('Invalid configuration file: malformed JSON');
+      }
 
       console.log('[page handleImport] Full config object:', config);
       console.log('[page handleImport] config.metadata:', config.metadata);
@@ -804,6 +809,11 @@ export default function Home() {
       // Validate structure
       if (!config.metadata || !config.audios || !Array.isArray(config.bookmarks) || !Array.isArray(config.loops)) {
         throw new Error('Invalid configuration file format');
+      }
+
+      // Validate that we have at least one audio file
+      if (!config.audios || config.audios.length === 0) {
+        throw new Error('Configuration file contains no audio files');
       }
 
       // Check if this is a configuration export (has configurationName in metadata)
@@ -997,8 +1007,25 @@ export default function Home() {
       });
     } catch (error) {
       console.error('Import failed:', error);
+      
+      // Provide more specific error messages based on error type
+      let errorMessage = 'Failed to import configuration. Please ensure the file is a valid export.';
+      
+      if (error instanceof Error) {
+        const errorMsg = error.message.toLowerCase();
+        if (errorMsg.includes('not a zip') || errorMsg.includes('invalid') && !errorMsg.includes('json')) {
+          errorMessage = 'The file is not a valid configuration export. Please select a valid .zip file.';
+        } else if (errorMsg.includes('malformed json')) {
+          errorMessage = 'The configuration file contains invalid JSON data.';
+        } else if (errorMsg.includes('meta.json')) {
+          errorMessage = 'The configuration file is missing required metadata.';
+        } else if (errorMsg.includes('no audio files')) {
+          errorMessage = 'The configuration file contains no audio files.';
+        }
+      }
+      
       setImportMessage({
-        text: 'Failed to import configuration. Please ensure the file is a valid export.',
+        text: errorMessage,
         error: true
       });
     } finally {
