@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw, Download, SkipForward, SkipBack, Loader2, Settings, Plus } from "lucide-react";
+import { Play, Pause, ChevronLeft, ChevronRight, Volume, VolumeX, Bookmark, Trash2, Edit2, RotateCcw, Download, SkipForward, SkipBack, Loader2, Settings, Plus, X, CheckCircle } from "lucide-react";
 import AudioUploader from "@/components/AudioUploader";
 import BookmarkModal from "@/components/BookmarkModal";
 import ABLoopModal from "@/components/ABLoopModal";
@@ -12,7 +12,6 @@ import SwipeableItem from "@/components/SwipeableItem";
 import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, type StoredAudio } from "@/lib/storage";
 import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip } from "@/lib/export";
 import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationId, getConfigurationStorageKeys, initializeDefaultConfiguration, type AudioPlayerConfiguration, createConfiguration, updateConfiguration, deleteConfiguration } from "@/lib/configuration";
-import ConfigurationManager from "@/components/ConfigurationManager";
 
 interface CustomTrack {
   id: string;
@@ -83,6 +82,8 @@ export default function Home() {
   const [isConfigModalOpen, setIsConfigModalOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<{ text: string; error: boolean } | null>(null);
+  const [isRenaming, setIsRenaming] = useState<string | null>(null);
+  const [renamingName, setRenamingName] = useState("");
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -604,6 +605,23 @@ export default function Home() {
     }
   };
 
+  const handleExportConfig = async (configId: string, configName: string) => {
+    try {
+      const blob = await exportConfiguration(configId);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${configName.replace(/\s+/g, '-')}-export.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Export failed:', error);
+      alert('Failed to export configuration');
+    }
+  };
+
   const handleExportLoop = async (loopId: string, loopName: string, aPoint: number, bPoint: number) => {
     if (!currentTrack) return;
     if (!activeConfigurationId) {
@@ -771,6 +789,24 @@ export default function Home() {
       console.error('Failed to rename configuration:', error);
       alert('Failed to rename configuration');
     }
+  };
+
+  const startRenaming = (config: AudioPlayerConfiguration) => {
+    setIsRenaming(config.id);
+    setRenamingName(config.name);
+  };
+
+  const saveRename = async () => {
+    if (isRenaming && renamingName.trim()) {
+      await handleRenameConfiguration(isRenaming, renamingName.trim());
+    }
+    setIsRenaming(null);
+    setRenamingName("");
+  };
+
+  const cancelRename = () => {
+    setIsRenaming(null);
+    setRenamingName("");
   };
 
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -1469,7 +1505,108 @@ export default function Home() {
 
           {isConfigSectionOpen && (
             <div className="mt-3 space-y-3">
-              {/* Export */}
+              {/* Configuration List */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Active Configuration</span>
+                  <button
+                    onClick={() => handleCreateConfiguration(prompt("Enter configuration name:") || "")}
+                    className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded"
+                  >
+                    <Plus className="w-3 h-3" />
+                    New
+                  </button>
+                </div>
+
+                {configurations.length === 0 ? (
+                  <div className="text-center py-3 text-xs text-zinc-500 dark:text-zinc-400">
+                    No configurations yet. Create one to get started!
+                  </div>
+                ) : (
+                  configurations.map((config) => (
+                    <div
+                      key={config.id}
+                      className={`p-2 border rounded-lg transition-all ${
+                        activeConfigurationId === config.id
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          {isRenaming === config.id ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={renamingName}
+                                onChange={(e) => setRenamingName(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === "Enter") saveRename();
+                                  if (e.key === "Escape") cancelRename();
+                                }}
+                                className="flex-1 px-2 py-1 border border-blue-500 rounded text-xs"
+                              />
+                              <button
+                                onClick={saveRename}
+                                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
+                              >
+                                <CheckCircle className="w-3 h-3 text-green-600" />
+                              </button>
+                              <button
+                                onClick={cancelRename}
+                                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => handleConfigurationChange(config.id)}
+                              className="flex-1 text-left"
+                            >
+                              <div className="text-xs font-medium truncate">{config.name}</div>
+                              <div className="text-[10px] text-zinc-500 truncate">{config.id}</div>
+                            </button>
+                          )}
+                          {activeConfigurationId === config.id && isRenaming !== config.id && (
+                            <CheckCircle className="w-3 h-3 text-green-600 flex-shrink-0 mt-1" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => startRenaming(config)}
+                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
+                            title="Rename"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteConfiguration(config.id)}
+                            className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-3 h-3 text-red-600" />
+                          </button>
+                          <button
+                            onClick={() => handleExportConfig(config.id, config.name)}
+                            disabled={isExporting}
+                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded disabled:opacity-50"
+                            title="Export"
+                          >
+                            {isExporting ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Download className="w-3 h-3" />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+
+              {/* Export Active Configuration */}
               <button
                 onClick={handleExport}
                 disabled={isExporting || tracks.length === 0}
@@ -1483,7 +1620,7 @@ export default function Home() {
                 ) : (
                   <>
                     <Download className="w-4 h-4" />
-                    <span>Download your current configuration</span>
+                    <span>Download current configuration</span>
                   </>
                 )}
               </button>
@@ -1535,20 +1672,6 @@ export default function Home() {
         </div>
         </main>
       )}
-
-      {/* Configuration Manager Modal */}
-      <ConfigurationManager
-        configurations={configurations}
-        activeConfigurationId={activeConfigurationId}
-        onConfigurationCreate={handleCreateConfiguration}
-        onConfigurationDelete={handleDeleteConfiguration}
-        onConfigurationRename={handleRenameConfiguration}
-        onConfigurationSelect={handleConfigurationChange}
-        onImport={handleImport}
-        importMessage={importMessage}
-        isOpen={isConfigModalOpen}
-        onClose={() => setIsConfigModalOpen(false)}
-      />
 
       {/* Bookmark Modal */}
       <BookmarkModal
