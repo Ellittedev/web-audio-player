@@ -9,7 +9,7 @@ import EditBookmarkModal from "@/components/EditBookmarkModal";
 import EditABLoopModal from "@/components/EditABLoopModal";
 import ABRepeatControls from "@/components/ABRepeatControls";
 import SwipeableItem from "@/components/SwipeableItem";
-import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, deleteAllAudiosAllConfigurations, type StoredAudio } from "@/lib/storage";
+import { getAllAudios, deleteAudio, storeAudio, deleteAllAudios, deleteAllAudiosAllConfigurations, updateAudioName, type StoredAudio } from "@/lib/storage";
 import { exportConfiguration, downloadExport, exportLoopAsAudio, downloadLoopExport, exportAllLoopsAsZip } from "@/lib/export";
 import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationId, getConfigurationStorageKeys, initializeDefaultConfiguration, type AudioPlayerConfiguration, createConfiguration, updateConfiguration, deleteConfiguration, deleteAllConfigurations, clearActiveConfigurationId } from "@/lib/configuration";
 
@@ -85,6 +85,10 @@ export default function Home() {
   const [importMessage, setImportMessage] = useState<{ text: string; error: boolean } | null>(null);
   const [isRenaming, setIsRenaming] = useState<string | null>(null);
   const [renamingName, setRenamingName] = useState("");
+
+  // Track renaming state
+  const [isRenamingTrack, setIsRenamingTrack] = useState<string | null>(null);
+  const [renamingTrackName, setRenamingTrackName] = useState("");
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -853,6 +857,32 @@ export default function Home() {
     setRenamingName("");
   };
 
+  // Track renaming handlers
+  const startRenamingTrack = (track: CustomTrack) => {
+    setIsRenamingTrack(track.id);
+    setRenamingTrackName(track.title);
+  };
+
+  const saveTrackRename = async () => {
+    if (isRenamingTrack && renamingTrackName.trim()) {
+      try {
+        await updateAudioName(isRenamingTrack, renamingTrackName.trim(), activeConfigurationId || configurations[0]?.id || "");
+        // Reload tracks to reflect the change
+        await loadTracks();
+      } catch (error) {
+        console.error('Failed to rename track:', error);
+        alert('Failed to rename track. Please try again.');
+      }
+    }
+    setIsRenamingTrack(null);
+    setRenamingTrackName("");
+  };
+
+  const cancelTrackRename = () => {
+    setIsRenamingTrack(null);
+    setRenamingTrackName("");
+  };
+
   const handleImport = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -1410,8 +1440,10 @@ export default function Home() {
                 >
                   <div
                     onClick={() => {
-                      setCurrentTrackIndex(index);
-                      setCurrentTime(0);
+                      if (isRenamingTrack !== track.id) {
+                        setCurrentTrackIndex(index);
+                        setCurrentTime(0);
+                      }
                     }}
                     className={`flex items-center justify-between p-3 rounded-lg transition-colors group cursor-pointer h-full ${
                       index === currentTrackIndex
@@ -1423,23 +1455,75 @@ export default function Home() {
                       <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 w-6 flex-shrink-0">
                         {index + 1}
                       </span>
-                      <div className="flex flex-col min-w-0 flex-1">
-                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
-                          {track.title}
-                        </span>
-                      </div>
+                      {isRenamingTrack === track.id ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <input
+                            type="text"
+                            value={renamingTrackName}
+                            onChange={(e) => setRenamingTrackName(e.target.value)}
+                            className="flex-1 px-3 py-1 text-sm border border-zinc-300 dark:border-zinc-700 rounded bg-white dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                            placeholder="Track name"
+                            autoFocus
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                saveTrackRename();
+                              } else if (e.key === 'Escape') {
+                                cancelTrackRename();
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              saveTrackRename();
+                            }}
+                            className="p-1 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/30 rounded transition-colors"
+                            aria-label="Save track name"
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              cancelTrackRename();
+                            }}
+                            className="p-1 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/30 rounded transition-colors"
+                            aria-label="Cancel track rename"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col min-w-0 flex-1">
+                          <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                            {track.title}
+                          </span>
+                        </div>
+                      )}
                     </div>
-                    {/* Desktop delete button - hidden by default */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteTrack(track.id, track.src);
-                      }}
-                      className="hidden group-hover:flex flex-shrink-0 p-2 text-zinc-400 hover:text-red-500 rounded transition-all"
-                      aria-label="Delete track"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {/* Desktop actions - edit and delete */}
+                    <div className="hidden group-hover:flex items-center gap-1 flex-shrink-0">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          startRenamingTrack(track);
+                        }}
+                        className="p-2 text-zinc-400 hover:text-blue-500 rounded transition-all"
+                        aria-label="Edit track name"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteTrack(track.id, track.src);
+                        }}
+                        className="p-2 text-zinc-400 hover:text-red-500 rounded transition-all"
+                        aria-label="Delete track"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
                   </div>
                 </SwipeableItem>
               ))}

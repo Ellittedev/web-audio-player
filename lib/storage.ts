@@ -186,12 +186,44 @@ export async function deleteAllAudiosAllConfigurations(): Promise<void> {
   return new Promise((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, 'readwrite');
     const store = transaction.objectStore(STORE_NAME);
-    
+
     // Clear all records
     const request = store.clear();
-    
+
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
+  });
+}
+
+/**
+ * Update the name of an audio track
+ */
+export async function updateAudioName(id: string, newName: string, configurationId: string): Promise<void> {
+  const database = await openDB();
+  return new Promise((resolve, reject) => {
+    const transaction = database.transaction(STORE_NAME, 'readwrite');
+    const store = transaction.objectStore(STORE_NAME);
+    const index = store.index('byConfigurationId');
+
+    // Get all audios for this configuration and find the matching one
+    const getAllRequest = index.getAll(configurationId);
+
+    getAllRequest.onsuccess = () => {
+      const audios = getAllRequest.result || [];
+      const record = audios.find(a => a.id === id);
+      
+      if (record) {
+        // Update the name
+        record.name = newName;
+        const updateRequest = store.put(record);
+        updateRequest.onsuccess = () => resolve();
+        updateRequest.onerror = () => reject(updateRequest.error);
+      } else {
+        reject(new Error('Audio not found'));
+      }
+    };
+
+    getAllRequest.onerror = () => reject(getAllRequest.error);
   });
 }
 
