@@ -101,14 +101,24 @@ export default function Home() {
   useEffect(() => {
     const storedConfigs = getAllConfigurations();
     setConfigurations(storedConfigs);
-    
+
     const activeConfigId = getActiveConfigurationId();
     setActiveConfigurationIdState(activeConfigId);
-    
+
     // If no active configuration, initialize default
-    if (!activeConfigId && storedConfigs.length > 0) {
-      setActiveConfigurationIdState(storedConfigs[0].id);
-      setActiveConfigurationId(storedConfigs[0].id);
+    if (!activeConfigId) {
+      const defaultConfig = initializeDefaultConfiguration();
+      if (defaultConfig) {
+        setActiveConfigurationIdState(defaultConfig.id);
+      }
+    } else if (storedConfigs.length > 0) {
+      // Configs exist with an active one, but verify it still exists
+      const existingConfig = storedConfigs.find(c => c.id === activeConfigId);
+      if (!existingConfig) {
+        // Active config was deleted, use first available
+        setActiveConfigurationIdState(storedConfigs[0].id);
+        setActiveConfigurationId(storedConfigs[0].id);
+      }
     }
   }, []);
 
