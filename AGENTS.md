@@ -152,6 +152,12 @@ export function getConfigurationStorageKeys(configId: string) {
 - SVG spinners for loading states with `animate-spin`
 - Touch actions: `touchAction: 'pan-y'` for swipe gestures
 
+### Responsive Design
+- Use responsive Tailwind prefixes: `sm:`, `md:`, `lg:`, `xl:`
+- Main container: `w-full max-w-md` for centered layout on all screens
+- Controls: Use `flex flex-wrap items-center justify-center` for wrapping on narrow screens
+- Maintain desktop appearance with `md:` breakpoints for larger screens
+
 ---
 
 ## Key Operations
