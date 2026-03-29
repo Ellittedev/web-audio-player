@@ -146,6 +146,7 @@ export function getConfigurationStorageKeys(configId: string) {
 - Controlled inputs with `value` + `onChange`
 - Disabled state: `disabled:opacity-50 disabled:cursor-not-allowed`
 - Focus rings: `focus:outline-none focus:ring-2 focus:ring-zinc-500`
+- **Timestamp inputs**: Use `type="text"` with formatted display values (e.g., "2:03") and `parseTime()` to convert back to seconds
 
 ### Animations & Transitions
 - CSS transitions: `transition-colors duration-200`
@@ -155,7 +156,10 @@ export function getConfigurationStorageKeys(configId: string) {
 ### Responsive Design
 - Use responsive Tailwind prefixes: `sm:`, `md:`, `lg:`, `xl:`
 - Main container: `w-full max-w-md` for centered layout on all screens
-- Controls: Use `flex flex-wrap items-center justify-center` for wrapping on narrow screens
+- **Controls layout**: Use `flex flex-col items-center gap-2 w-full` for three-row layout:
+  - Top row: `flex justify-center` for bookmark button
+  - Middle row: `flex flex-wrap items-center justify-center gap-2` for navigation buttons
+  - Bottom row: `flex justify-center` for loop button
 - Maintain desktop appearance with `md:` breakpoints for larger screens
 
 ---
@@ -189,6 +193,53 @@ export function getConfigurationStorageKeys(configId: string) {
 - **Sanitize filenames**: Replace special chars, max 50 chars
 - **AB loop export**: Can export active AB loop as MP3
 
+### Timestamp Formatting in Edit Modals
+When displaying timestamps in editable inputs (e.g., `EditBookmarkModal`, `EditABLoopModal`):
+
+1. **Keep display state separate from numeric state**:
+   ```typescript
+   const [timestamp, setTimestamp] = useState(0);      // Numeric value
+   const [displayTimestamp, setDisplayTimestamp] = useState("");  // Formatted string
+   ```
+
+2. **Use `useEffect` to keep display in sync**:
+   ```typescript
+   useEffect(() => {
+     setDisplayTimestamp(formatTime(timestamp));
+   }, [timestamp]);
+   ```
+
+3. **Use `type="text"` for the input** (number inputs can't display formatted strings):
+   ```typescript
+   <input
+     type="text"
+     value={displayTimestamp}
+     onChange={(e) => setTimestamp(parseTime(e.target.value))}
+   />
+   ```
+
+4. **Provide a `parseTime()` helper** to convert formatted strings back to seconds:
+   ```typescript
+   const parseTime = (timeStr: string): number => {
+     const parts = timeStr.split(":");
+     if (parts.length !== 2) return 0;
+     const minutes = parseFloat(parts[0]);
+     const seconds = parseFloat(parts[1]);
+     if (isNaN(minutes) || isNaN(seconds)) return 0;
+     return minutes * 60 + seconds;
+   };
+   ```
+
+5. **Format helper function**:
+   ```typescript
+   const formatTime = (time: number): string => {
+     if (isNaN(time) || !isFinite(time)) return "0:00";
+     const minutes = Math.floor(time / 60);
+     const seconds = Math.floor(time % 60);
+     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+   };
+   ```
+
 ---
 
 ## Error Handling
@@ -206,3 +257,29 @@ export function getConfigurationStorageKeys(configId: string) {
 - **Lint**: `pnpm lint`
 
 Always use `pnpm` instead of `npm` or `npx`.
+
+---
+
+## GitHub Issue Linking
+
+### Commit Message Convention
+To automatically link commits to GitHub issues, include the issue number in the commit message:
+
+```bash
+git commit -m "feat: add new feature #123"
+```
+
+**Format**: `<type>: <description> #<issue-number>`
+
+### Branch Naming Convention
+Use GitHub issue notation for branch names so commits appear in the issue:
+
+```bash
+git checkout -b issue/<issue-number>-<short-description>
+# Example: git checkout -b issue/9-human-readable-timestamps
+```
+
+This ensures:
+- Commits are linked to the issue automatically
+- PRs created from the branch are properly associated
+- GitHub UI shows commit history within the issue thread

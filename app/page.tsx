@@ -1210,17 +1210,21 @@ export default function Home() {
         </div>
 
         {/* Controls */}
-        <div className="flex flex-wrap items-center justify-center gap-2">
-          <button
-            onClick={handleAddBookmark}
-            disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
-            className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            aria-label="Add bookmark"
-          >
-            <Bookmark className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
-          </button>
+        <div className="flex flex-col items-center gap-2 w-full">
+          {/* Top row: Bookmark button above play button */}
+          <div className="flex justify-center">
+            <button
+              onClick={handleAddBookmark}
+              disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
+              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-2"
+              aria-label="Add bookmark"
+            >
+              <Bookmark className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+            </button>
+          </div>
 
-          <div className="flex items-center gap-4">
+          {/* Middle row: All navigation buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-2">
             <button
               onClick={handleFastBackward}
               disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
@@ -1268,30 +1272,33 @@ export default function Home() {
             </button>
           </div>
 
-          <button
-            onClick={() => handleLoopButtonClick(currentTime)}
-            className={`p-3 rounded-full transition-colors ${
-              abCreationState === 'waiting_for_b'
-                ? 'bg-zinc-900 dark:bg-zinc-100'
-                : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700'
-            }`}
-            aria-label="Set loop point A"
-          >
-            <div className="flex items-center gap-1">
-              <RotateCcw className={`w-6 h-6 ${
+          {/* Bottom row: Loop button below play button */}
+          <div className="flex justify-center">
+            <button
+              onClick={() => handleLoopButtonClick(currentTime)}
+              className={`p-3 rounded-full transition-colors ${
                 abCreationState === 'waiting_for_b'
+                  ? 'bg-zinc-900 dark:bg-zinc-100'
+                  : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+              }`}
+              aria-label="Set loop point A"
+            >
+              <div className="flex items-center gap-1">
+                <RotateCcw className={`w-6 h-6 ${
+                  abCreationState === 'waiting_for_b'
+                    ? 'text-white dark:text-black'
+                    : 'text-zinc-900 dark:text-zinc-100'
+                }`} />
+                <span className={`text-sm font-semibold ${
+                  abCreationState === 'waiting_for_b'
                   ? 'text-white dark:text-black'
                   : 'text-zinc-900 dark:text-zinc-100'
-              }`} />
-              <span className={`text-sm font-semibold ${
-                abCreationState === 'waiting_for_b'
-                  ? 'text-white dark:text-black'
-                  : 'text-zinc-900 dark:text-zinc-100'
-              }`}>
-                {abCreationState === 'waiting_for_b' ? 'B' : 'A'}
-              </span>
-            </div>
-          </button>
+                }`}>
+                  {abCreationState === 'waiting_for_b' ? 'B' : 'A'}
+                </span>
+              </div>
+            </button>
+          </div>
         </div>
 
         {/* Volume Control */}
