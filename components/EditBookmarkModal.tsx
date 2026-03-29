@@ -19,6 +19,7 @@ export default function EditBookmarkModal({
 }: EditBookmarkModalProps) {
   const [name, setName] = useState("");
   const [timestamp, setTimestamp] = useState(0);
+  const [displayTimestamp, setDisplayTimestamp] = useState("");
 
   // Format time helper
   const formatTime = (time: number) => {
@@ -28,11 +29,27 @@ export default function EditBookmarkModal({
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  // Parse formatted time back to seconds (e.g., "2:03" -> 123)
+  const parseTime = (timeStr: string): number => {
+    const parts = timeStr.split(":");
+    if (parts.length !== 2) return 0;
+    const minutes = parseFloat(parts[0]);
+    const seconds = parseFloat(parts[1]);
+    if (isNaN(minutes) || isNaN(seconds)) return 0;
+    return minutes * 60 + seconds;
+  };
+
+  // Keep display in sync with timestamp changes
+  useEffect(() => {
+    setDisplayTimestamp(formatTime(timestamp));
+  }, [timestamp]);
+
   // Initialize values when modal opens
   useEffect(() => {
     if (isOpen) {
       setName(bookmarkName);
       setTimestamp(bookmarkTimestamp);
+      setDisplayTimestamp(formatTime(bookmarkTimestamp));
     }
   }, [isOpen, bookmarkName, bookmarkTimestamp]);
 
@@ -72,9 +89,9 @@ export default function EditBookmarkModal({
               Timestamp
             </label>
             <input
-              type="number"
-              value={timestamp}
-              onChange={(e) => setTimestamp(parseFloat(e.target.value) || 0)}
+              type="text"
+              value={displayTimestamp}
+              onChange={(e) => setTimestamp(parseTime(e.target.value))}
               step="0.1"
               min="0"
               className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 mb-2"
