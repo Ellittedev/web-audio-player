@@ -16,6 +16,7 @@ import { getAllConfigurations, getActiveConfigurationId, setActiveConfigurationI
 interface CustomTrack {
   id: string;
   title: string;
+  filename: string; // Store original filename with extension
   src: string;
   duration?: number;
 }
@@ -259,6 +260,7 @@ export default function Home() {
         loadedTracks.push({
           id: storedAudio.id,
           title: storedAudio.name.replace(/\.[^/.]+$/, ""),
+          filename: storedAudio.name,
           src: url,
         });
       }
@@ -284,6 +286,7 @@ export default function Home() {
     const newTrack: CustomTrack = {
       id: audioFile.id,
       title: audioFile.name.replace(/\.[^/.]+$/, ""), // Remove extension
+      filename: audioFile.name,
       src: audioFile.url,
     };
 
@@ -860,7 +863,7 @@ export default function Home() {
   // Track renaming handlers
   const startRenamingTrack = (track: CustomTrack) => {
     setIsRenamingTrack(track.id);
-    setRenamingTrackName(track.title);
+    setRenamingTrackName(track.filename);
   };
 
   const saveTrackRename = async () => {
@@ -1102,6 +1105,7 @@ export default function Home() {
         updatedTracks.push({
           id: storedAudio.id,
           title: storedAudio.name.replace(/\.[^/.]+$/, ""),
+          filename: storedAudio.name,
           src: url,
         });
       }
