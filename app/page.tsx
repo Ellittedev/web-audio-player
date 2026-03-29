@@ -730,6 +730,13 @@ export default function Home() {
       blobUrls.current.forEach((url) => URL.revokeObjectURL(url));
       blobUrls.current.clear();
 
+      // Reload configurations and initialize default
+      const defaultConfig = initializeDefaultConfiguration();
+      if (defaultConfig) {
+        setConfigurations([defaultConfig]);
+        setActiveConfigurationIdState(defaultConfig.id);
+      }
+
       // Reload tracks
       await loadTracks();
     } catch (error) {
