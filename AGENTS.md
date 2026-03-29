@@ -15,7 +15,14 @@ When a fix doesn't resolve the issue:
 ---
 
 ## Project Overview
-**Audio Player**: A Next.js 16 + React 19 client-side audio player with IndexedDB storage, bookmarking, AB loop functionality, and **multiple configuration support**.
+**Audio Player**: A Next.js 16 + React 19 client-side audio player with IndexedDB storage, bookmarking, AB loop functionality, multiple configuration support, and **playback speed controls**.
+
+### Playback Speed Controls
+The app now supports adjustable playback speed from 0.5x to 2x:
+- **Preset buttons**: Quick access to common speeds (0.5x, 1x, 1.5x, 2x)
+- **Fine-grained slider**: Adjust speed in 0.01 increments
+- **Current speed display**: Shows the active playback speed
+- **Reset button**: Return to normal (1x) speed
 
 ### Multiple Configurations
 The app now supports multiple independent configurations, each with its own:

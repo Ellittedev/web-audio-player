@@ -45,6 +45,7 @@ export default function Home() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
 
   // Configuration state
   const [activeConfigurationId, setActiveConfigurationIdState] = useState<string | null>(null);
@@ -370,6 +371,22 @@ export default function Home() {
   const toggleMute = () => {
     setIsMuted(!isMuted);
   };
+
+  // Speed control handlers
+  const handleSpeedChange = (speed: number) => {
+    setPlaybackSpeed(speed);
+  };
+
+  const resetSpeed = () => {
+    setPlaybackSpeed(1.0);
+  };
+
+  // Update playback rate when speed changes
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackSpeed;
+    }
+  }, [playbackSpeed]);
 
   const togglePlay = () => {
     if (!audioRef.current || !currentTrack) return;
@@ -1321,6 +1338,48 @@ export default function Home() {
             onChange={handleVolumeChange}
             className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-zinc-900 dark:accent-zinc-100"
           />
+        </div>
+
+        {/* Speed Control */}
+        <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Playback Speed</span>
+            <button
+              onClick={resetSpeed}
+              className="text-xs px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            >
+              Reset
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2 mb-3">
+            {[0.5, 1, 1.5, 2].map((speed) => (
+              <button
+                key={speed}
+                onClick={() => handleSpeedChange(speed)}
+                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                  playbackSpeed === speed
+                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                }`}
+              >
+                {speed}x
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-zinc-500 dark:text-zinc-400 w-12">
+              {playbackSpeed.toFixed(2)}x
+            </span>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.01"
+              value={playbackSpeed}
+              onChange={(e) => handleSpeedChange(Number(e.target.value))}
+              className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-zinc-900 dark:accent-zinc-100"
+            />
+          </div>
         </div>
 
         {/* Playlist Section */}
