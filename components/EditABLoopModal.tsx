@@ -100,27 +100,63 @@ export default function EditABLoopModal({
             </label>
             <div className="space-y-3">
               <div>
-                <input
-                  type="text"
-                  value={displayATimestamp}
-                  onChange={(e) => setATimestamp(parseTime(e.target.value))}
-                  step="0.1"
-                  min="0"
-                  className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setATimestamp(Math.max(0, aTimestamp - 1))}
+                    className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                    aria-label="Decrease A point by 1 second"
+                  >
+                    <span className="text-lg">-</span>
+                  </button>
+                  <input
+                    type="text"
+                    value={displayATimestamp}
+                    onChange={(e) => setATimestamp(parseTime(e.target.value))}
+                    step="0.1"
+                    min="0"
+                    className="flex-1 px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setATimestamp(aTimestamp + 1)}
+                    className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                    aria-label="Increase A point by 1 second"
+                  >
+                    <span className="text-lg">+</span>
+                  </button>
+                </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                   A Point (current: {formatTime(aTimestamp)} | original: {formatTime(aPoint)})
                 </p>
               </div>
               <div>
-                <input
-                  type="text"
-                  value={displayBTimestamp}
-                  onChange={(e) => setBTimestamp(parseTime(e.target.value))}
-                  step="0.1"
-                  min="0"
-                  className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500"
-                />
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setBTimestamp(Math.max(0, bTimestamp - 1))}
+                    className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                    aria-label="Decrease B point by 1 second"
+                  >
+                    <span className="text-lg">-</span>
+                  </button>
+                  <input
+                    type="text"
+                    value={displayBTimestamp}
+                    onChange={(e) => setBTimestamp(parseTime(e.target.value))}
+                    step="0.1"
+                    min="0"
+                    className="flex-1 px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setBTimestamp(bTimestamp + 1)}
+                    className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                    aria-label="Increase B point by 1 second"
+                  >
+                    <span className="text-lg">+</span>
+                  </button>
+                </div>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
                   B Point (current: {formatTime(bTimestamp)} | original: {formatTime(bPoint)})
                 </p>

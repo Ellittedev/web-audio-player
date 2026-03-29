@@ -88,15 +88,33 @@ export default function EditBookmarkModal({
             <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
               Timestamp
             </label>
-            <input
-              type="text"
-              value={displayTimestamp}
-              onChange={(e) => setTimestamp(parseTime(e.target.value))}
-              step="0.1"
-              min="0"
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 mb-2"
-            />
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setTimestamp(Math.max(0, timestamp - 1))}
+                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                aria-label="Decrease timestamp by 1 second"
+              >
+                <span className="text-lg">-</span>
+              </button>
+              <input
+                type="text"
+                value={displayTimestamp}
+                onChange={(e) => setTimestamp(parseTime(e.target.value))}
+                step="0.1"
+                min="0"
+                className="flex-1 px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              />
+              <button
+                type="button"
+                onClick={() => setTimestamp(timestamp + 1)}
+                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                aria-label="Increase timestamp by 1 second"
+              >
+                <span className="text-lg">+</span>
+              </button>
+            </div>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
               Current: {formatTime(timestamp)} | Original: {formatTime(bookmarkTimestamp)}
             </p>
           </div>

@@ -218,7 +218,35 @@ When displaying timestamps in editable inputs (e.g., `EditBookmarkModal`, `EditA
    />
    ```
 
-4. **Provide a `parseTime()` helper** to convert formatted strings back to seconds:
+4. **Add increment/decrement buttons** for easier editing:
+   ```typescript
+   <div className="flex items-center gap-2">
+     <button
+       type="button"
+       onClick={() => setTimestamp(Math.max(0, timestamp - 1))}
+       className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+       aria-label="Decrease timestamp by 1 second"
+     >
+       <span className="text-lg">-</span>
+     </button>
+     <input
+       type="text"
+       value={displayTimestamp}
+       onChange={(e) => setTimestamp(parseTime(e.target.value))}
+       className="flex-1 px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg"
+     />
+     <button
+       type="button"
+       onClick={() => setTimestamp(timestamp + 1)}
+       className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+       aria-label="Increase timestamp by 1 second"
+     >
+       <span className="text-lg">+</span>
+     </button>
+   </div>
+   ```
+
+5. **Provide a `parseTime()` helper** to convert formatted strings back to seconds:
    ```typescript
    const parseTime = (timeStr: string): number => {
      const parts = timeStr.split(":");
