@@ -15,7 +15,15 @@ When a fix doesn't resolve the issue:
 ---
 
 ## Project Overview
-**Audio Player**: A Next.js 16 + React 19 client-side audio player with IndexedDB storage, bookmarking, AB loop functionality, multiple configuration support, and **playback speed controls**.
+**Audio Player**: A Next.js 16 + React 19 client-side audio player with IndexedDB storage, bookmarking, AB loop functionality, multiple configuration support, **playback speed controls**, and **track renaming**.
+
+### Track Renaming
+The app now supports renaming audio tracks inline:
+- **Desktop**: Hover over a track → Click the edit (pencil) icon
+- **Mobile**: Swipe left to reveal delete (edit functionality can be added via long-press)
+- **Rename mode**: An input field appears with the current track name, plus save (✓) and cancel (✗) buttons
+- **Keyboard support**: Press Enter to save, Escape to cancel
+- **Extension preservation**: The file extension is preserved in the stored/exported file even though it's not shown in the UI
 
 ### Playback Speed Controls
 The app now supports adjustable playback speed from 0.5x to 2x:
