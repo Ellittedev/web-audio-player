@@ -1152,7 +1152,7 @@ export default function Home() {
       )}
 
       {!isLoadingTracks && (
-        <main className="flex flex-col w-full max-w-md flex-col items-center gap-8 py-32 px-6 bg-white dark:bg-black sm:px-12 shadow-lg rounded-xl">
+        <main className="flex flex-col w-full md:max-w-md flex-col items-center gap-8 py-32 px-4 md:px-6 bg-white dark:bg-black sm:px-12 shadow-lg rounded-xl">
         {/* Header */}
         <div className="flex items-center justify-between w-full mb-6">
           <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -1210,7 +1210,7 @@ export default function Home() {
         </div>
 
         {/* Controls */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <button
             onClick={handleAddBookmark}
             disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
