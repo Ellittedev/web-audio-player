@@ -1276,24 +1276,24 @@ export default function Home() {
           <div className="flex justify-center">
             <button
               onClick={() => handleLoopButtonClick(currentTime)}
-              className={`p-3 rounded-full transition-colors ${
+              className={`p-3 rounded-full transition-colors relative ${
                 abCreationState === 'waiting_for_b'
                   ? 'bg-zinc-900 dark:bg-zinc-100'
                   : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700'
               }`}
               aria-label="Set loop point A"
             >
-              <div className="flex items-center gap-1">
+              <div className="flex items-center justify-center">
                 <RotateCcw className={`w-6 h-6 ${
                   abCreationState === 'waiting_for_b'
                     ? 'text-white dark:text-black'
                     : 'text-zinc-900 dark:text-zinc-100'
                 }`} />
-                <span className={`text-sm font-semibold ${
+                <span className={`absolute text-xs font-bold ${
                   abCreationState === 'waiting_for_b'
-                  ? 'text-white dark:text-black'
-                  : 'text-zinc-900 dark:text-zinc-100'
-                }`}>
+                    ? 'text-white dark:text-black'
+                    : 'text-zinc-900 dark:text-zinc-100'
+                }`} style={{ top: '50%', transform: 'translateY(-50%)' }}>
                   {abCreationState === 'waiting_for_b' ? 'B' : 'A'}
                 </span>
               </div>
