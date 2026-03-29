@@ -15,7 +15,16 @@ When a fix doesn't resolve the issue:
 ---
 
 ## Project Overview
-**Audio Player**: A Next.js 16 + React 19 client-side audio player with IndexedDB storage, bookmarking, and AB loop functionality.
+**Audio Player**: A Next.js 16 + React 19 client-side audio player with IndexedDB storage, bookmarking, AB loop functionality, and **multiple configuration support**.
+
+### Multiple Configurations
+The app now supports multiple independent configurations, each with its own:
+- Audio tracks library
+- Bookmarks
+- AB loop settings
+- Active loop state
+
+This allows users to maintain separate projects (e.g., different albums, podcasts, or sessions) within the same app instance.
 
 ---
 
@@ -59,7 +68,7 @@ When a fix doesn't resolve the issue:
 ### IndexedDB (`@/lib/storage.ts`)
 ```typescript
 const DB_NAME = 'AudioPlayerDB';
-const DB_VERSION = 1;
+const DB_VERSION = 4;  // Bumped for blob storage support
 const STORE_NAME = 'audios';
 
 // Always wrap promises around IDB operations
@@ -67,10 +76,62 @@ export async function storeAudio(audio: StoredAudio): Promise<void> { ... }
 export async function getAllAudios(): Promise<StoredAudio[]> { ... }
 ```
 
-### localStorage Keys
-- `audioPlayerBookmarks` → `Record<string, Bookmark[]>` (trackId → bookmarks)
-- `audioPlayerABLoops` → `Record<string, ABLoop[]>` (trackId → loops)
+### StoredAudio Interface
+```typescript
+interface StoredAudio {
+  id: string;
+  title: string;
+  dataUrl: string;        // Legacy base64 format (for backward compat)
+  blob: Blob;             // New blob storage (for large files)
+  usesBlob: boolean;      // true = blob storage, false = legacy base64
+  size: number;
+  duration: number;
+  uploadedAt: number;
+}
+```
+
+### Configuration-Based Storage Keys
+Each configuration has its own localStorage namespace:
+- `{configId}_bookmarks` → `Bookmark[]`
+- `{configId}_loops` → `ABLoop[]`
+- `{configId}_activeLoop` → `string | null`
+
+### Legacy Storage Keys (backward compatibility)
+- `audioPlayerBookmarks` → `Record<string, Bookmark[]>`
+- `audioPlayerABLoops` → `Record<string, ABLoop[]>`
 - `audioPlayerActiveLoop` → `string | null`
+
+### Configuration Management (`@/lib/configuration.ts`)
+```typescript
+interface Configuration {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+// Core functions
+export function initializeDefaultConfiguration(): Configuration | null;
+export function getAllConfigurations(): Promise<Configuration[]>;
+export function createConfiguration(name: string): Promise<Configuration>;
+export function updateConfiguration(id: string, updates: Partial<Configuration>): Promise<void>;
+export function deleteConfiguration(id: string): Promise<void>;
+export function setActiveConfigurationId(id: string): Promise<void>;
+export function getActiveConfigurationId(): Promise<string | null>;
+```
+
+### Storage Keys Helper
+```typescript
+// Get configuration-specific storage keys
+export function getConfigurationStorageKeys(configId: string) {
+  return {
+    bookmarksKey: `${configId}_bookmarks`,
+    loopsKey: `${configId}_loops`,
+    activeLoopKey: `${configId}_activeLoop`,
+  };
+}
+```
 
 ---
 
@@ -97,19 +158,30 @@ export async function getAllAudios(): Promise<StoredAudio[]> { ... }
 
 ### File Uploads
 1. Validate type/extension + max size (50MB)
-2. Convert to base64 data URL for IndexedDB storage
-3. Create blob URL from data URL for playback
+2. Store file as **Blob** directly (not base64) for large files
+3. Create blob URL from Blob for playback
 4. Revoke blob URLs on cleanup
+
+**Note:** Blob storage is preferred for large files. Legacy base64 storage is still supported for backward compatibility but converts to blob format on first load.
 
 ### Audio Playback
 - Use `<audio ref={audioRef}>` element
 - Track `currentTime`, `duration`, `volume`, `isMuted`
 - AB loops: Jump to A point when reaching B point during playback
 
+### Imports
+- **Zip format**: Extract `meta.json` + audio files
+- **Metadata versioning**: Supports `"version": "0.2"` and `"version": "0.3"`
+- **Multiple configurations**: Import creates new configuration with zip filename as name
+- **Blob storage**: Imports now store files as blobs directly
+- **Metadata includes**: `"version"`, `"name"`, `"audios"[]`, `"usesBlob"`, `"dataUrl"`
+
 ### Exports
-- Zip format with `meta.json` + audio files
-- Metadata versioning: `"version": "0.2"`
-- Sanitize filenames: replace special chars, max 50 chars
+- **Zip format**: Contains `meta.json` + audio files
+- **Metadata versioning**: `"version": "0.2"` (legacy) or `"version": "0.3"` (with blob support)
+- **Metadata includes**: `"version"`, `"name"`, `"audios"[]`, `"usesBlob"`, `"dataUrl"`
+- **Sanitize filenames**: Replace special chars, max 50 chars
+- **AB loop export**: Can export active AB loop as MP3
 
 ---
 
