@@ -1423,15 +1423,6 @@ export default function Home() {
                   key={track.id}
                   actions={
                     <div className="w-full h-full flex">
-                      <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
-                        <button
-                          onClick={() => handleDeleteTrack(track.id, track.src)}
-                          className="p-2 rounded text-white hover:bg-red-600 transition-colors"
-                          aria-label="Delete track"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
                       <div className="flex-1 bg-blue-500/90 dark:bg-blue-600/90 flex items-center justify-center">
                         <button
                           onClick={() => startRenamingTrack(track)}
@@ -1439,6 +1430,15 @@ export default function Home() {
                           aria-label="Edit track name"
                         >
                           <Edit2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
+                        <button
+                          onClick={() => handleDeleteTrack(track.id, track.src)}
+                          className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                          aria-label="Delete track"
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
