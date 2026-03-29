@@ -196,7 +196,7 @@ export async function deleteAllAudiosAllConfigurations(): Promise<void> {
 }
 
 /**
- * Update the name of an audio track
+ * Update the name of an audio track, preserving the file extension
  */
 export async function updateAudioName(id: string, newName: string, configurationId: string): Promise<void> {
   const database = await openDB();
@@ -211,10 +211,17 @@ export async function updateAudioName(id: string, newName: string, configuration
     getAllRequest.onsuccess = () => {
       const audios = getAllRequest.result || [];
       const record = audios.find(a => a.id === id);
-      
+
       if (record) {
+        // Extract the file extension from the current name
+        const extensionMatch = record.name.match(/\.[^./]+$/);
+        const extension = extensionMatch ? extensionMatch[0] : '';
+        
+        // Append the extension to the new name
+        const newNameWithExtension = extension ? `${newName}${extension}` : newName;
+        
         // Update the name
-        record.name = newName;
+        record.name = newNameWithExtension;
         const updateRequest = store.put(record);
         updateRequest.onsuccess = () => resolve();
         updateRequest.onerror = () => reject(updateRequest.error);
