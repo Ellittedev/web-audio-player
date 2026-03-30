@@ -169,13 +169,15 @@ export function getConfigurationStorageKeys(configId: string) {
 - Touch actions: `touchAction: 'pan-y'` for swipe gestures
 
 ### Responsive Design
+- **Mobile-first approach**: Always design for mobile first, then enhance for tablet and desktop
 - Use responsive Tailwind prefixes: `sm:`, `md:`, `lg:`, `xl:`
 - Main container: `w-full max-w-md` for centered layout on all screens
 - **Controls layout**: Use `flex flex-col items-center gap-2 w-full` for three-row layout:
   - Top row: `flex justify-center` for bookmark button
-  - Middle row: `flex flex-wrap items-center justify-center gap-2` for navigation buttons
+  - Middle row: `flex flex-nowrap items-center justify-center gap-2 sm:gap-3` for navigation buttons (prevent wrapping on mobile)
   - Bottom row: `flex justify-center` for loop button
 - Maintain desktop appearance with `md:` breakpoints for larger screens
+- **Critical**: When making any styling changes, always ensure compliance with mobile and tablet views. Test responsive behavior before committing. Avoid `flex-wrap` on control buttons as it causes layout issues on mobile where buttons drop to new rows.
 
 ---
 
