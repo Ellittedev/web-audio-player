@@ -1282,15 +1282,15 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Middle row: All navigation buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3">
+          {/* Middle row: All navigation buttons - keep single row on mobile */}
+          <div className="flex flex-nowrap items-center justify-center gap-2 sm:gap-3">
             <button
               onClick={handleFastBackward}
               disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
-              className="p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
+              className="p-3 sm:p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
               aria-label="Fast backward 5 seconds"
             >
-              <SkipBack className="w-6 h-6 text-white" />
+              <SkipBack className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 -5s
               </span>
@@ -1298,10 +1298,10 @@ export default function Home() {
 
             <button
               onClick={prevTrack}
-              className="p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
+              className="p-3 sm:p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
               aria-label="Previous track"
             >
-              <ChevronLeft className="w-6 h-6 text-white" />
+              <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 PREV
               </span>
@@ -1309,13 +1309,13 @@ export default function Home() {
 
             <button
               onClick={togglePlay}
-              className="p-5 rounded-full btn-neon-cyan transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative active-glow"
+              className="p-4 sm:p-5 rounded-full btn-neon-cyan transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative active-glow"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
-                <Pause className="w-8 h-8 text-white" />
+                <Pause className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               ) : (
-                <Play className="w-8 h-8 text-white" />
+                <Play className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
               )}
               <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 {isPlaying ? 'PAUSE' : 'PLAY'}
@@ -1324,10 +1324,10 @@ export default function Home() {
 
             <button
               onClick={nextTrack}
-              className="p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
+              className="p-3 sm:p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
               aria-label="Next track"
             >
-              <ChevronRight className="w-6 h-6 text-white" />
+              <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 NEXT
               </span>
@@ -1336,10 +1336,10 @@ export default function Home() {
             <button
               onClick={handleFastForward}
               disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
-              className="p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
+              className="p-3 sm:p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
               aria-label="Fast forward 5 seconds"
             >
-              <SkipForward className="w-6 h-6 text-white" />
+              <SkipForward className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 +5s
               </span>
@@ -1347,7 +1347,7 @@ export default function Home() {
           </div>
 
           {/* Bottom row: Loop button below play button */}
-          <div className="flex justify-center mt-3">
+          <div className="flex justify-center mt-2 sm:mt-3">
             <button
               onClick={() => handleLoopButtonClick(currentTime)}
               className={`p-4 rounded-full transition-all relative group ${
@@ -1455,7 +1455,7 @@ export default function Home() {
                   key={track.id}
                   actions={
                     <div className="w-full h-full flex">
-                      <div className="flex-1 bg-neon-purple/90 dark:bg-neon-blue/90 flex items-center justify-center">
+                      <div className="flex-1 bg-neon-purple/90 flex items-center justify-center neon-border-pink">
                         <button
                           onClick={() => startRenamingTrack(track)}
                           className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
@@ -1464,7 +1464,7 @@ export default function Home() {
                           <Edit2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
+                      <div className="flex-1 bg-red-500/90 flex items-center justify-center neon-border-pink">
                         <button
                           onClick={() => handleDeleteTrack(track.id, track.src)}
                           className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
@@ -1567,7 +1567,7 @@ export default function Home() {
                   key={bookmark.id}
                   actions={
                     <div className="w-full h-full flex">
-                      <div className="flex-1 bg-yellow-500/90 dark:bg-yellow-600/90 flex items-center justify-center">
+                      <div className="flex-1 bg-yellow-500/90 flex items-center justify-center neon-border-pink">
                         <button
                           onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
                           className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
@@ -1576,7 +1576,7 @@ export default function Home() {
                           <Edit2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
+                      <div className="flex-1 bg-red-500/90 flex items-center justify-center neon-border-pink">
                         <button
                           onClick={() => handleDeleteBookmark(bookmark.id)}
                           className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"

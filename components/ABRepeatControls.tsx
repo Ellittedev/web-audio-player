@@ -120,7 +120,7 @@ export default function ABRepeatControls({
               actions={
                 <div className="w-full h-full flex">
                   {onExportLoop && (
-                    <div className="flex-1 bg-neon-purple/90 dark:bg-neon-blue/90 flex items-center justify-center">
+                    <div className="flex-1 bg-neon-purple/90 flex items-center justify-center neon-border-pink">
                       <button
                         onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
                         disabled={isLoopExporting}
@@ -131,7 +131,7 @@ export default function ABRepeatControls({
                       </button>
                     </div>
                   )}
-                  <div className="flex-1 bg-neon-cyan/90 dark:bg-neon-blue/90 flex items-center justify-center">
+                  <div className="flex-1 bg-neon-cyan/90 flex items-center justify-center neon-border-pink">
                     <button
                       onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
                       className="p-2 rounded text-black hover:bg-opacity-80 transition-colors"
@@ -144,7 +144,7 @@ export default function ABRepeatControls({
                       )}
                     </button>
                   </div>
-                  <div className="flex-1 bg-yellow-500/90 dark:bg-yellow-600/90 flex items-center justify-center">
+                  <div className="flex-1 bg-yellow-500/90 flex items-center justify-center neon-border-pink">
                     <button
                       onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
                       className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
@@ -153,7 +153,7 @@ export default function ABRepeatControls({
                       <Edit2 className="w-4 h-4" />
                     </button>
                   </div>
-                  <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
+                  <div className="flex-1 bg-red-500/90 flex items-center justify-center neon-border-pink">
                     <button
                       onClick={() => onDeleteLoop(loop.id)}
                       className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
