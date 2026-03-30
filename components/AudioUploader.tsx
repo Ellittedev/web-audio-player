@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { UploadCloud } from "lucide-react";
+import { UploadCloud, Loader2 } from "lucide-react";
 import { storeAudio, type StoredAudio } from "@/lib/storage";
 
 interface AudioFile {
@@ -135,11 +135,10 @@ export default function AudioUploader({ onUploadComplete, activeConfigurationId 
         onDrop={handleDrop}
         onClick={handleClick}
         className={`
-          border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-          transition-colors duration-200
+          border-2 rounded-lg p-8 text-center cursor-pointer transition-all duration-300 relative overflow-hidden
           ${isDragging
-            ? "border-zinc-400 bg-zinc-100 dark:bg-zinc-800"
-            : "border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600"
+            ? "border-neon-cyan bg-[#1a0a2e]/50"
+            : "border-zinc-700 dark:border-zinc-600 hover:border-neon-pink"
           }
           ${processing ? "opacity-50 cursor-not-allowed" : ""}
         `}
@@ -154,29 +153,39 @@ export default function AudioUploader({ onUploadComplete, activeConfigurationId 
         />
 
         {processing ? (
-          <div className="text-zinc-600 dark:text-zinc-400">
-            <svg className="w-8 h-8 mx-auto mb-2 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <p>Processing...</p>
+          <div className="text-neon-cyan relative z-10">
+            <Loader2 className="w-8 h-8 mx-auto mb-3 animate-spin neon-glow-cyan" />
+            <p className="font-mono text-sm tracking-wider">PROCESSING...</p>
           </div>
         ) : (
           <>
-            <UploadCloud className="w-12 h-12 mx-auto mb-3 text-zinc-400 dark:text-zinc-500" />
-            <p className="text-zinc-700 dark:text-zinc-300 font-medium">
-              Drop audio file here or click to browse
+            <UploadCloud className={`w-12 h-12 mx-auto mb-3 transition-all ${
+              isDragging ? "text-neon-cyan animate-pulse" : "text-zinc-500 dark:text-zinc-400 group-hover:text-neon-pink"
+            }`} />
+            <p className={`font-medium tracking-wide transition-colors ${
+              isDragging ? "text-neon-cyan" : "text-zinc-300 dark:text-zinc-200"
+            }`}>
+              DROP AUDIO FILE HERE OR CLICK TO BROWSE
             </p>
-            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1">
-              MP3, WAV, OGG, WEBM, M4A, AAC (max 500MB)
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-1 font-mono">
+              MP3, WAV, OGG, WEBM, M4A, AAC (MAX 500MB)
             </p>
           </>
+        )}
+
+        {/* Background gradient effect */}
+        {!processing && (
+          <div className={`absolute inset-0 opacity-0 transition-opacity duration-300 ${
+            isDragging ? "opacity-20" : ""
+          }`}>
+            <div className="absolute inset-0 bg-gradient-to-r from-neon-pink/10 via-transparent to-neon-cyan/10"></div>
+          </div>
         )}
       </div>
 
       {error && (
-        <div className="mt-3 p-3 bg-red-100 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg">
-          <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+        <div className="mt-3 p-3 bg-red-900/30 border border-red-500/50 rounded-lg neon-border-pink">
+          <p className="text-sm text-red-400 font-mono">{error}</p>
         </div>
       )}
     </div>

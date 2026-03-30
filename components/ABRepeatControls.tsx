@@ -61,29 +61,29 @@ export default function ABRepeatControls({
   };
 
   return (
-    <div className="w-full">
+    <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
       {/* AB Repeat Controls Header */}
       <div className="flex items-center gap-3 mb-3">
-        <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">AB Repeat Loops</span>
+        <span className="text-sm font-medium text-neon-cyan tracking-wide">AB REPEAT LOOPS</span>
       </div>
 
       {/* Active Loop Indicator */}
       {activeLoopId && (
-        <div className="mb-3 p-3 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/30 dark:to-blue-900/30 border border-purple-300 dark:border-purple-700 rounded-lg">
+        <div className="mb-3 p-3 bg-gradient-to-r from-neon-purple/20 to-neon-cyan/20 border border-neon-pink/50 rounded-lg neon-glow-pink">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase">Active Loop</span>
+            <span className="text-xs font-bold text-neon-pink uppercase tracking-wider">ACTIVE LOOP</span>
             <button
               onClick={() => onToggleLoop(null)}
-              className="text-xs text-purple-600 dark:text-purple-400 hover:underline"
+              className="text-xs text-neon-cyan hover:underline font-mono"
             >
-              Stop
+              STOP
             </button>
           </div>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+            <span className="text-sm font-medium text-neon-cyan truncate">
               {loops.find((l) => l.id === activeLoopId)?.name}
             </span>
-            <span className="text-xs text-zinc-600 dark:text-zinc-400">
+            <span className="text-xs text-neon-purple font-mono">
               {formatTime(currentTime)}
             </span>
           </div>
@@ -98,17 +98,17 @@ export default function ABRepeatControls({
             <button
               onClick={onExportAllLoops}
               disabled={isLoopExporting}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 hover:bg-green-100 dark:hover:bg-green-900/30 hover:text-green-700 dark:hover:text-green-400 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-2"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 text-xs font-medium text-neon-cyan bg-zinc-800/50 hover:bg-zinc-700/50 border border-neon-pink/30 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group neon-border-pink"
             >
               {isLoopExporting ? (
                 <>
-                  <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  <span>Exporting...</span>
+                  <div className="w-3 h-3 border-2 border-neon-pink border-t-transparent rounded-full animate-spin" />
+                  <span className="font-mono">EXPORTING...</span>
                 </>
               ) : (
                 <>
-                  <Download className="w-3 h-3" />
-                  <span>Export All Loops as ZIP</span>
+                  <Download className="w-3 h-3 group-hover:animate-pulse" />
+                  <span className="font-mono">EXPORT ALL LOOPS AS ZIP</span>
                 </>
               )}
             </button>
@@ -120,21 +120,21 @@ export default function ABRepeatControls({
               actions={
                 <div className="w-full h-full flex">
                   {onExportLoop && (
-                    <div className="flex-1 bg-blue-500/90 dark:bg-blue-600/90 flex items-center justify-center">
+                    <div className="flex-1 bg-neon-purple/90 dark:bg-neon-blue/90 flex items-center justify-center">
                       <button
                         onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
                         disabled={isLoopExporting}
-                        className="p-2 rounded text-white hover:bg-blue-600 transition-colors disabled:opacity-50"
+                        className="p-2 rounded text-white hover:bg-opacity-80 transition-colors disabled:opacity-50"
                         title="Export as MP3"
                       >
                         <FileDown className="w-4 h-4" />
                       </button>
                     </div>
                   )}
-                  <div className="flex-1 bg-green-500/90 dark:bg-green-600/90 flex items-center justify-center">
+                  <div className="flex-1 bg-neon-cyan/90 dark:bg-neon-blue/90 flex items-center justify-center">
                     <button
                       onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
-                      className="p-2 rounded text-white hover:bg-green-600 transition-colors"
+                      className="p-2 rounded text-black hover:bg-opacity-80 transition-colors"
                       title={activeLoopId === loop.id ? "Stop this loop" : "Play this loop"}
                     >
                       {activeLoopId === loop.id ? (
@@ -147,7 +147,7 @@ export default function ABRepeatControls({
                   <div className="flex-1 bg-yellow-500/90 dark:bg-yellow-600/90 flex items-center justify-center">
                     <button
                       onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
-                      className="p-2 rounded text-white hover:bg-yellow-600 transition-colors"
+                      className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
                       title="Edit loop"
                     >
                       <Edit2 className="w-4 h-4" />
@@ -156,7 +156,7 @@ export default function ABRepeatControls({
                   <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
                     <button
                       onClick={() => onDeleteLoop(loop.id)}
-                      className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                      className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
                       title="Delete loop"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -168,10 +168,10 @@ export default function ABRepeatControls({
               threshold={30}
             >
               <div
-                className={`flex items-center justify-between p-3 rounded-lg transition-colors group h-full ${
+                className={`flex items-center justify-between p-3 rounded-lg transition-all group h-full ${
                   activeLoopId === loop.id
-                    ? "bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/40 dark:to-blue-900/40 border border-purple-300 dark:border-purple-700"
-                    : "bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700"
+                    ? "bg-neon-purple/20 border border-neon-pink/50 neon-glow-pink"
+                    : "bg-zinc-800/50 hover:bg-zinc-700/50 border border-transparent group-hover:border-zinc-600"
                 }`}
               >
                 <div className="flex items-center gap-3 flex-1 min-w-0">
@@ -179,8 +179,8 @@ export default function ABRepeatControls({
                     onClick={() => handleSeekToA(loop.aPoint)}
                     className={`flex-shrink-0 px-2 py-1 rounded text-xs font-bold transition-colors ${
                       activeLoopId === loop.id
-                        ? "bg-green-600 text-white"
-                        : "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                        ? "bg-neon-cyan text-black"
+                        : "bg-zinc-700/50 text-neon-cyan hover:bg-zinc-600/50"
                     }`}
                     title="Seek to A point"
                   >
@@ -188,11 +188,11 @@ export default function ABRepeatControls({
                   </button>
                   <div className="flex flex-col min-w-0">
                     <span className={`text-sm font-medium truncate ${
-                      activeLoopId === loop.id ? "text-purple-900 dark:text-purple-100" : "text-zinc-900 dark:text-zinc-100"
+                      activeLoopId === loop.id ? "text-neon-cyan" : "text-zinc-200 dark:text-zinc-100"
                     }`}>
                       {loop.name}
                     </span>
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                    <span className="text-xs text-neon-purple font-mono">
                       {formatTime(loop.aPoint)} → {formatTime(loop.bPoint)}
                     </span>
                   </div>
@@ -204,7 +204,7 @@ export default function ABRepeatControls({
                     <button
                       onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
                       disabled={isLoopExporting}
-                      className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-green-300 dark:hover:bg-green-900/50 hover:text-green-700 dark:hover:text-green-400 transition-colors disabled:opacity-50"
+                      className="p-2 rounded bg-zinc-700 dark:bg-zinc-600 text-neon-cyan hover:bg-zinc-600 dark:hover:bg-zinc-500 transition-colors disabled:opacity-50"
                       title="Export as MP3"
                     >
                       <FileDown className="w-4 h-4" />
@@ -214,8 +214,8 @@ export default function ABRepeatControls({
                     onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
                     className={`p-2 rounded transition-colors ${
                       activeLoopId === loop.id
-                        ? "bg-purple-600 text-white hover:bg-purple-700"
-                        : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                        ? "bg-neon-cyan text-black hover:bg-opacity-80"
+                        : "bg-zinc-700 dark:bg-zinc-600 text-neon-cyan hover:bg-zinc-600 dark:hover:bg-zinc-500"
                     }`}
                     title={activeLoopId === loop.id ? "Stop this loop" : "Play this loop"}
                   >
@@ -227,14 +227,14 @@ export default function ABRepeatControls({
                   </button>
                   <button
                     onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
-                    className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
+                    className="p-2 rounded bg-zinc-700 dark:bg-zinc-600 text-neon-cyan hover:bg-zinc-600 dark:hover:bg-zinc-500 transition-colors"
                     title="Edit loop"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => onDeleteLoop(loop.id)}
-                    className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-500 hover:text-red-500 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                    className="p-2 rounded bg-zinc-700 dark:bg-zinc-600 text-red-400 hover:bg-red-900/30 hover:text-red-300 transition-colors"
                     title="Delete loop"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -247,8 +247,8 @@ export default function ABRepeatControls({
       )}
 
       {loops.length === 0 && (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          No loops yet. Click the button to create your first AB repeat loop.
+        <p className="text-sm text-zinc-500 dark:text-zinc-400 font-mono">
+          NO LOOPS YET. CLICK THE BUTTON TO CREATE YOUR FIRST AB REPEAT LOOP.
         </p>
       )}
     </div>

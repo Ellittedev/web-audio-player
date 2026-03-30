@@ -64,35 +64,38 @@ export default function EditBookmarkModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-zinc-900 rounded-lg p-6 w-full max-w-sm mx-4 shadow-xl">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-          Edit Bookmark
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
+      <div className="bg-[#1a0a2e] border border-neon-pink/50 rounded-lg p-6 w-full max-w-sm mx-4 shadow-xl neon-glow-pink relative overflow-hidden">
+        {/* Background glow effect */}
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-pink"></div>
+        
+        <h3 className="text-lg font-semibold text-neon-cyan mb-4 tracking-wide">
+          EDIT BOOKMARK
         </h3>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Name
+            <label className="block text-sm font-medium text-neon-purple mb-2">
+              NAME
             </label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter bookmark name..."
-              className="w-full px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+              placeholder="ENTER BOOKMARK NAME..."
+              className="w-full px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono"
               autoFocus
             />
           </div>
 
           <div className="mb-6">
-            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-              Timestamp
+            <label className="block text-sm font-medium text-neon-purple mb-2">
+              TIMESTAMP
             </label>
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setTimestamp(Math.max(0, timestamp - 1))}
-                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                 aria-label="Decrease timestamp by 1 second"
               >
                 <span className="text-lg">-</span>
@@ -103,19 +106,19 @@ export default function EditBookmarkModal({
                 onChange={(e) => setTimestamp(parseTime(e.target.value))}
                 step="0.1"
                 min="0"
-                className="flex-1 px-4 py-2 border border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500"
+                className="flex-1 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono"
               />
               <button
                 type="button"
                 onClick={() => setTimestamp(timestamp + 1)}
-                className="p-2 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                 aria-label="Increase timestamp by 1 second"
               >
                 <span className="text-lg">+</span>
               </button>
             </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2">
-              Current: {formatTime(timestamp)} | Original: {formatTime(bookmarkTimestamp)}
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 font-mono">
+              CURRENT: {formatTime(timestamp)} | ORIGINAL: {formatTime(bookmarkTimestamp)}
             </p>
           </div>
 
@@ -123,16 +126,16 @@ export default function EditBookmarkModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              className="px-4 py-2 text-zinc-400 hover:text-neon-cyan hover:bg-zinc-700/50 rounded-lg transition-colors font-mono"
             >
-              Cancel
+              CANCEL
             </button>
             <button
               type="submit"
               disabled={!name.trim()}
-              className="px-4 py-2 bg-zinc-900 dark:bg-zinc-100 text-white dark:text-black rounded-lg hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-neon-pink text-white rounded-lg hover:bg-opacity-80 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-mono"
             >
-              Save Changes
+              SAVE CHANGES
             </button>
           </div>
         </form>

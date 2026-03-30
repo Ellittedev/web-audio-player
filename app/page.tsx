@@ -1186,39 +1186,47 @@ export default function Home() {
   }, [activeLoopId, loops, isPlaying]);
 
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
+    <div className="flex flex-col flex-1 items-center justify-center bg-[#0a0014] font-sans relative overflow-hidden">
+      {/* Synthwave Grid Floor Background */}
+      <div className="grid-floor"></div>
+
+      {/* Ambient Glow Effects */}
+      <div className="fixed top-20 left-1/4 w-96 h-96 bg-neon-purple/20 rounded-full blur-[100px] pointer-events-none"></div>
+      <div className="fixed bottom-40 right-1/4 w-80 h-80 bg-neon-cyan/15 rounded-full blur-[80px] pointer-events-none"></div>
+
       {/* Loading Screen */}
       {isLoadingTracks && (
-        <div className="fixed inset-0 flex items-center justify-center bg-zinc-50 dark:bg-black z-50">
-          <div className="text-center">
-            <Loader2 className="w-16 h-16 text-zinc-900 dark:text-zinc-100 animate-spin mx-auto mb-4" />
-            <p className="text-zinc-600 dark:text-zinc-400 text-lg">Loading your audio library...</p>
+        <div className="fixed inset-0 flex items-center justify-center bg-[#0a0014] z-50">
+          <div className="text-center relative z-10">
+            <Loader2 className="w-16 h-16 text-neon-pink animate-spin mx-auto mb-4 neon-glow-pink" />
+            <p className="text-neon-cyan text-lg font-mono tracking-wider">LOADING AUDIO LIBRARY...</p>
           </div>
         </div>
       )}
 
       {!isLoadingTracks && (
-        <main className="flex flex-col w-full md:max-w-md flex-col items-center gap-8 py-32 px-4 md:px-6 bg-white dark:bg-black sm:px-12 shadow-lg rounded-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between w-full mb-6">
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            Audio Player
-          </h1>
-        </div>
+        <main className="flex flex-col w-full md:max-w-md flex-col items-center gap-8 py-16 px-4 md:px-6 relative z-10">
+          {/* Header with Neon Glow */}
+          <div className="flex items-center justify-between w-full mb-8">
+            <h1 className="text-3xl font-bold neon-text-pink tracking-wider">
+              AUDIO PLAYER
+            </h1>
+            <div className="w-2 h-2 bg-neon-cyan rounded-full pulse-glow"></div>
+          </div>
 
-        <div className="text-center">
+        <div className="text-center mb-4">
           {currentTrack ? (
             <>
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+              <h2 className="text-2xl font-semibold neon-text-cyan mb-2 tracking-wide">
                 {currentTrack.title}
               </h2>
-              <p className="text-sm text-zinc-500 dark:text-zinc-400">
-                Track {currentTrackIndex + 1} of {tracks.length}
+              <p className="text-sm text-neon-purple font-mono">
+                TRACK {currentTrackIndex + 1} OF {tracks.length}
               </p>
             </>
           ) : (
-            <p className="text-zinc-500 dark:text-zinc-400 mt-2">
-              No track selected. Upload an audio file to start playing.
+            <p className="text-zinc-400 dark:text-zinc-500 mt-2">
+              NO TRACK SELECTED. UPLOAD AN AUDIO FILE TO START PLAYING.
             </p>
           )}
         </div>
@@ -1239,9 +1247,9 @@ export default function Home() {
           preload="auto"
         />
 
-        {/* Progress Bar */}
-        <div className="w-full flex items-center gap-3 text-sm text-zinc-600 dark:text-zinc-300">
-          <span>{formatTime(currentTime)}</span>
+        {/* Progress Bar with Neon Styling */}
+        <div className="w-full flex items-center gap-3 text-sm font-mono">
+          <span className="text-neon-cyan w-12">{formatTime(currentTime)}</span>
           <input
             type="range"
             min="0"
@@ -1250,112 +1258,135 @@ export default function Home() {
             value={currentTime}
             onChange={handleSeek}
             disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
-            className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-zinc-900 dark:accent-zinc-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 h-2 bg-zinc-700/50 rounded-lg appearance-none cursor-pointer accent-neon-cyan disabled:opacity-50 disabled:cursor-not-allowed"
           />
-          <span>{formatTime(duration)}</span>
+          <span className="text-neon-purple w-12">{formatTime(duration)}</span>
         </div>
 
+        {/* Controls Container with Neon Border */}
+        <div className="w-full mt-6 neon-border-pink rounded-2xl p-6 bg-[#1a0a2e]/80 backdrop-blur-sm">
         {/* Controls */}
-        <div className="flex flex-col items-center gap-2 w-full">
+        <div className="flex flex-col items-center gap-3 w-full">
           {/* Top row: Bookmark button above play button */}
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-2">
             <button
               onClick={handleAddBookmark}
               disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
-              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-2"
+              className="p-4 rounded-full btn-neon-cyan transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
               aria-label="Add bookmark"
             >
-              <Bookmark className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+              <Bookmark className="w-6 h-6 text-white group-hover:animate-pulse" />
+              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                ADD BOOKMARK
+              </span>
             </button>
           </div>
 
           {/* Middle row: All navigation buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={handleFastBackward}
               disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
-              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
               aria-label="Fast backward 5 seconds"
             >
-              <SkipBack className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+              <SkipBack className="w-6 h-6 text-white" />
+              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                -5s
+              </span>
             </button>
 
             <button
               onClick={prevTrack}
-              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
               aria-label="Previous track"
             >
-              <ChevronLeft className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+              <ChevronLeft className="w-6 h-6 text-white" />
+              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                PREV
+              </span>
             </button>
 
             <button
               onClick={togglePlay}
-              className="p-4 rounded-full bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-700 dark:hover:bg-zinc-200 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-5 rounded-full btn-neon-cyan transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative active-glow"
               aria-label={isPlaying ? "Pause" : "Play"}
             >
               {isPlaying ? (
-                <Pause className="w-8 h-8 text-white dark:text-black" />
+                <Pause className="w-8 h-8 text-white" />
               ) : (
-                <Play className="w-8 h-8 text-white dark:text-black" />
+                <Play className="w-8 h-8 text-white" />
               )}
+              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                {isPlaying ? 'PAUSE' : 'PLAY'}
+              </span>
             </button>
 
             <button
               onClick={nextTrack}
-              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
               aria-label="Next track"
             >
-              <ChevronRight className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+              <ChevronRight className="w-6 h-6 text-white" />
+              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                NEXT
+              </span>
             </button>
 
             <button
               onClick={handleFastForward}
               disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
-              className="p-3 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-4 rounded-full btn-neon-pink transition-all disabled:opacity-50 disabled:cursor-not-allowed group relative"
               aria-label="Fast forward 5 seconds"
             >
-              <SkipForward className="w-6 h-6 text-zinc-900 dark:text-zinc-100" />
+              <SkipForward className="w-6 h-6 text-white" />
+              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                +5s
+              </span>
             </button>
           </div>
 
           {/* Bottom row: Loop button below play button */}
-          <div className="flex justify-center">
+          <div className="flex justify-center mt-3">
             <button
               onClick={() => handleLoopButtonClick(currentTime)}
-              className={`p-3 rounded-full transition-colors relative ${
+              className={`p-4 rounded-full transition-all relative group ${
                 abCreationState === 'waiting_for_b'
-                  ? 'bg-zinc-900 dark:bg-zinc-100'
-                  : 'bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  ? 'btn-neon-pink active-glow'
+                  : 'btn-neon-cyan'
               }`}
               aria-label="Set loop point A"
             >
               <div className="flex items-center justify-center">
                 <RotateCcw className={`w-6 h-6 ${
                   abCreationState === 'waiting_for_b'
-                    ? 'text-white dark:text-black'
-                    : 'text-zinc-900 dark:text-zinc-100'
+                    ? 'text-white animate-pulse'
+                    : 'text-white'
                 }`} />
                 <span className={`absolute text-xs font-bold ${
                   abCreationState === 'waiting_for_b'
-                    ? 'text-white dark:text-black'
-                    : 'text-zinc-900 dark:text-zinc-100'
+                    ? 'text-white'
+                    : 'text-white'
                 }`} style={{ top: '50%', transform: 'translateY(-50%)' }}>
                   {abCreationState === 'waiting_for_b' ? 'B' : 'A'}
                 </span>
               </div>
+              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                {abCreationState === 'waiting_for_b' ? 'SET B POINT' : 'SET A POINT'}
+              </span>
             </button>
           </div>
         </div>
 
-        {/* Volume Control */}
-        <div className="flex items-center gap-3 w-full">
-          <button onClick={toggleMute} className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+        {/* Volume Control with Neon */}
+        <div className="flex items-center gap-3 w-full mt-6 pt-4 border-t border-zinc-700/50">
+          <button onClick={toggleMute} className="p-2 hover:bg-zinc-800/50 rounded-full transition-colors group relative">
             {isMuted || volume === 0 ? (
-              <VolumeX className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+              <VolumeX className="w-5 h-5 text-neon-cyan" />
             ) : volume < 0.5 ? (
-              <Volume className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+              <Volume className="w-5 h-5 text-neon-cyan" />
             ) : (
-              <Volume className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+              <Volume className="w-5 h-5 text-neon-cyan" />
             )}
           </button>
           <input
@@ -1365,19 +1396,19 @@ export default function Home() {
             step="0.01"
             value={isMuted ? 0 : volume}
             onChange={handleVolumeChange}
-            className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-zinc-900 dark:accent-zinc-100"
+            className="flex-1 h-2 bg-zinc-700/50 rounded-lg appearance-none cursor-pointer accent-neon-cyan"
           />
         </div>
 
         {/* Speed Control */}
-        <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
+        <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Playback Speed</span>
+            <span className="text-sm font-medium text-neon-cyan tracking-wide">PLAYBACK SPEED</span>
             <button
               onClick={resetSpeed}
-              className="text-xs px-2 py-1 rounded bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              className="text-xs px-3 py-1.5 rounded-lg bg-zinc-800/50 hover:bg-zinc-700/50 transition-colors text-neon-purple font-mono"
             >
-              Reset
+              RESET
             </button>
           </div>
           <div className="flex flex-wrap gap-2 mb-3">
@@ -1385,10 +1416,10 @@ export default function Home() {
               <button
                 key={speed}
                 onClick={() => handleSpeedChange(speed)}
-                className={`px-3 py-1.5 text-sm rounded-lg transition-colors ${
+                className={`px-4 py-2 text-sm rounded-lg transition-all font-mono ${
                   playbackSpeed === speed
-                    ? 'bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900'
-                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                    ? 'bg-neon-pink text-white shadow-lg shadow-neon-pink/50'
+                    : 'bg-zinc-800/50 text-neon-cyan hover:bg-zinc-700/50'
                 }`}
               >
                 {speed}x
@@ -1396,7 +1427,7 @@ export default function Home() {
             ))}
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-xs text-zinc-500 dark:text-zinc-400 w-12">
+            <span className="text-xs text-neon-purple font-mono w-12">
               {playbackSpeed.toFixed(2)}x
             </span>
             <input
@@ -1406,16 +1437,17 @@ export default function Home() {
               step="0.01"
               value={playbackSpeed}
               onChange={(e) => handleSpeedChange(Number(e.target.value))}
-              className="flex-1 h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-zinc-900 dark:accent-zinc-100"
+              className="flex-1 h-2 bg-zinc-700/50 rounded-lg appearance-none cursor-pointer accent-neon-pink"
             />
           </div>
+        </div>
         </div>
 
         {/* Playlist Section */}
         {tracks.length > 0 && (
-          <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
-            <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
-              Playlist ({tracks.length} {tracks.length === 1 ? 'track' : 'tracks'})
+          <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
+            <h3 className="text-sm font-medium text-neon-cyan mb-3 tracking-wide">
+              PLAYLIST ({tracks.length} {tracks.length === 1 ? 'TRACK' : 'TRACKS'})
             </h3>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {tracks.map((track, index) => (
@@ -1423,10 +1455,10 @@ export default function Home() {
                   key={track.id}
                   actions={
                     <div className="w-full h-full flex">
-                      <div className="flex-1 bg-blue-500/90 dark:bg-blue-600/90 flex items-center justify-center">
+                      <div className="flex-1 bg-neon-purple/90 dark:bg-neon-blue/90 flex items-center justify-center">
                         <button
                           onClick={() => startRenamingTrack(track)}
-                          className="p-2 rounded text-white hover:bg-blue-600 transition-colors"
+                          className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
                           aria-label="Edit track name"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -1435,7 +1467,7 @@ export default function Home() {
                       <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
                         <button
                           onClick={() => handleDeleteTrack(track.id, track.src)}
-                          className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                          className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
                           aria-label="Delete track"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1451,18 +1483,22 @@ export default function Home() {
                       setCurrentTrackIndex(index);
                       setCurrentTime(0);
                     }}
-                    className={`flex items-center justify-between p-3 rounded-lg transition-colors group cursor-pointer h-full ${
+                    className={`flex items-center justify-between p-3 rounded-lg transition-all group cursor-pointer h-full ${
                       index === currentTrackIndex
-                        ? 'bg-zinc-200 dark:bg-zinc-700'
-                        : 'bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700'
+                        ? 'bg-neon-purple/20 border border-neon-purple/50 neon-glow-pink'
+                        : 'bg-zinc-800/50 hover:bg-zinc-700/50 border border-transparent group-hover:border-zinc-600'
                     }`}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <span className="text-xs font-mono text-zinc-500 dark:text-zinc-400 w-6 flex-shrink-0">
+                      <span className={`text-xs font-mono w-6 flex-shrink-0 ${
+                        index === currentTrackIndex ? 'text-neon-cyan' : 'text-zinc-500 dark:text-zinc-400'
+                      }`}>
                         {index + 1}
                       </span>
                       <div className="flex flex-col min-w-0 flex-1">
-                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                        <span className={`text-sm font-medium truncate ${
+                          index === currentTrackIndex ? 'text-neon-cyan' : 'text-zinc-200 dark:text-zinc-100'
+                        }`}>
                           {track.title}
                         </span>
                       </div>
@@ -1474,7 +1510,7 @@ export default function Home() {
                           e.stopPropagation();
                           startRenamingTrack(track);
                         }}
-                        className="p-2 text-zinc-400 hover:text-blue-500 rounded transition-all"
+                        className="p-2 text-zinc-400 hover:text-neon-cyan rounded transition-all"
                         aria-label="Edit track name"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -1520,9 +1556,9 @@ export default function Home() {
         />
 
         {/* Bookmarks Section */}
-        <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
-          <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
-            Bookmarks ({bookmarks.length})
+        <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
+          <h3 className="text-sm font-medium text-neon-cyan mb-3 tracking-wide">
+            BOOKMARKS ({bookmarks.length})
           </h3>
           {bookmarks.length > 0 && (
             <div className="space-y-2 max-h-40 overflow-y-auto">
@@ -1534,7 +1570,7 @@ export default function Home() {
                       <div className="flex-1 bg-yellow-500/90 dark:bg-yellow-600/90 flex items-center justify-center">
                         <button
                           onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
-                          className="p-2 rounded text-white hover:bg-yellow-600 transition-colors"
+                          className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
                           aria-label="Edit bookmark"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -1543,7 +1579,7 @@ export default function Home() {
                       <div className="flex-1 bg-red-500/90 dark:bg-red-600/90 flex items-center justify-center">
                         <button
                           onClick={() => handleDeleteBookmark(bookmark.id)}
-                          className="p-2 rounded text-white hover:bg-red-600 transition-colors"
+                          className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
                           aria-label="Delete bookmark"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -1555,18 +1591,18 @@ export default function Home() {
                   threshold={30}
                 >
                   <div
-                    className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors group h-full"
+                    className="flex items-center justify-between p-3 bg-zinc-800/50 rounded-lg hover:bg-zinc-700/50 transition-all group h-full border border-transparent group-hover:border-zinc-600"
                   >
                     <button
                       onClick={() => handleJumpToBookmark(bookmark.timestamp)}
                       className="flex items-center gap-3 text-left min-w-0 flex-1"
                     >
-                      <Bookmark className="w-4 h-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
+                      <Bookmark className="w-4 h-4 text-neon-cyan flex-shrink-0" />
                       <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-medium text-zinc-900 dark:text-zinc-100 truncate">
+                        <span className="text-sm font-medium text-zinc-200 dark:text-zinc-100 truncate">
                           {bookmark.name}
                         </span>
-                        <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                        <span className="text-xs text-neon-purple font-mono">
                           {formatTime(bookmark.timestamp)}
                         </span>
                       </div>
@@ -1575,7 +1611,7 @@ export default function Home() {
                     <div className="hidden group-hover:flex items-center gap-1 flex-shrink-0 ml-2">
                       <button
                         onClick={() => handleEditBookmarkClick(bookmark.id, bookmark.name, bookmark.timestamp)}
-                        className="p-2 rounded bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors"
+                        className="p-2 rounded bg-zinc-700 dark:bg-zinc-600 text-zinc-300 hover:bg-zinc-600 dark:hover:bg-zinc-500 transition-colors"
                         aria-label="Edit bookmark"
                       >
                         <Edit2 className="w-4 h-4" />
@@ -1595,30 +1631,30 @@ export default function Home() {
           )}
 
           {bookmarks.length === 0 && currentTrack && (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              No bookmarks yet. Click the bookmark icon in the controls to add one.
+            <p className="text-sm text-zinc-500 dark:text-zinc-400 font-mono">
+              NO BOOKMARKS YET. CLICK THE BOOKMARK ICON IN THE CONTROLS TO ADD ONE.
             </p>
           )}
         </div>
 
         {/* Upload Section */}
-        <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
-          <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-3">
-            Upload Your Own Audio
+        <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
+          <h3 className="text-sm font-medium text-neon-cyan mb-3 tracking-wide">
+            UPLOAD YOUR OWN AUDIO
           </h3>
-          <AudioUploader 
-            onUploadComplete={handleUploadComplete} 
-            activeConfigurationId={activeConfigurationId || configurations[0]?.id || ''} 
+          <AudioUploader
+            onUploadComplete={handleUploadComplete}
+            activeConfigurationId={activeConfigurationId || configurations[0]?.id || ''}
           />
         </div>
 
         {/* Configuration Section */}
-        <div className="w-full pt-4 border-t border-zinc-200 dark:border-zinc-800">
+        <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
           <button
             onClick={() => setIsConfigSectionOpen(!isConfigSectionOpen)}
-            className="flex items-center justify-between w-full text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            className="flex items-center justify-between w-full text-sm font-medium text-neon-cyan hover:text-neon-purple transition-colors"
           >
-            <span>Configuration</span>
+            <span className="tracking-wide">CONFIGURATION</span>
             <ChevronLeft
               className={`w-4 h-4 transition-transform ${
                 isConfigSectionOpen ? 'transform rotate-180' : ''
@@ -1631,19 +1667,19 @@ export default function Home() {
               {/* Configuration List */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">Active Configuration</span>
+                  <span className="text-xs font-medium text-neon-purple font-mono">ACTIVE CONFIGURATION</span>
                   <button
                     onClick={() => handleCreateConfiguration(prompt("Enter configuration name:") || "")}
-                    className="flex items-center gap-1 px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded"
+                    className="flex items-center gap-1 px-2 py-1 bg-neon-cyan/20 hover:bg-neon-cyan/30 text-neon-cyan text-xs rounded border border-neon-cyan/50 transition-colors"
                   >
                     <Plus className="w-3 h-3" />
-                    New
+                    NEW
                   </button>
                 </div>
 
                 {configurations.length === 0 ? (
-                  <div className="text-center py-3 text-xs text-zinc-500 dark:text-zinc-400">
-                    No configurations yet. Create one to get started!
+                  <div className="text-center py-3 text-xs text-zinc-500 dark:text-zinc-400 font-mono">
+                    NO CONFIGURATIONS YET. CREATE ONE TO GET STARTED!
                   </div>
                 ) : (
                   configurations.map((config) => (
@@ -1651,8 +1687,8 @@ export default function Home() {
                       key={config.id}
                       className={`p-2 border rounded-lg transition-all ${
                         activeConfigurationId === config.id
-                          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
-                          : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
+                          ? "border-neon-pink bg-neon-pink/10 neon-glow-pink"
+                          : "border-zinc-700 dark:border-zinc-600 hover:border-neon-purple/50"
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -1667,19 +1703,19 @@ export default function Home() {
                                   if (e.key === "Enter") saveRename();
                                   if (e.key === "Escape") cancelRename();
                                 }}
-                                className="flex-1 px-2 py-1 border border-blue-500 rounded text-xs"
+                                className="flex-1 px-2 py-1 border border-neon-cyan rounded text-xs bg-zinc-800/50 text-neon-cyan font-mono"
                               />
                               <button
                                 onClick={saveRename}
-                                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
+                                className="p-1 hover:bg-neon-cyan/20 rounded transition-colors"
                               >
-                                <CheckCircle className="w-3 h-3 text-green-600" />
+                                <CheckCircle className="w-3 h-3 text-neon-cyan" />
                               </button>
                               <button
                                 onClick={cancelRename}
-                                className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
+                                className="p-1 hover:bg-zinc-700 rounded transition-colors"
                               >
-                                <X className="w-3 h-3" />
+                                <X className="w-3 h-3 text-zinc-400" />
                               </button>
                             </div>
                           ) : (
@@ -1687,39 +1723,41 @@ export default function Home() {
                               onClick={() => handleConfigurationChange(config.id)}
                               className="flex-1 text-left"
                             >
-                              <div className="text-xs font-medium truncate">{config.name}</div>
-                              <div className="text-[10px] text-zinc-500 truncate">{config.id}</div>
+                              <div className={`text-xs font-medium truncate ${
+                                activeConfigurationId === config.id ? 'text-neon-cyan' : 'text-zinc-300'
+                              }`}>{config.name}</div>
+                              <div className="text-[10px] text-zinc-500 font-mono truncate">{config.id}</div>
                             </button>
                           )}
                           {activeConfigurationId === config.id && isRenaming !== config.id && (
-                            <CheckCircle className="w-3 h-3 text-green-600 flex-shrink-0 mt-1" />
+                            <CheckCircle className="w-3 h-3 text-neon-cyan flex-shrink-0 mt-1" />
                           )}
                         </div>
                         <div className="flex items-center gap-1">
                           <button
                             onClick={() => startRenaming(config)}
-                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded"
+                            className="p-1 hover:bg-zinc-700 rounded transition-colors"
                             title="Rename"
                           >
-                            <Edit2 className="w-3 h-3" />
+                            <Edit2 className="w-3 h-3 text-neon-cyan" />
                           </button>
                           <button
                             onClick={() => handleDeleteConfiguration(config.id)}
-                            className="p-1 hover:bg-red-100 dark:hover:bg-red-900/30 rounded"
+                            className="p-1 hover:bg-red-900/30 rounded transition-colors"
                             title="Delete"
                           >
-                            <Trash2 className="w-3 h-3 text-red-600" />
+                            <Trash2 className="w-3 h-3 text-red-500" />
                           </button>
                           <button
                             onClick={() => handleExportConfig(config.id, config.name)}
                             disabled={isExporting}
-                            className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded disabled:opacity-50"
+                            className="p-1 hover:bg-zinc-700 rounded disabled:opacity-50 transition-colors"
                             title="Export"
                           >
                             {isExporting ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
+                              <Loader2 className="w-3 h-3 animate-spin text-neon-pink" />
                             ) : (
-                              <Download className="w-3 h-3" />
+                              <Download className="w-3 h-3 text-neon-cyan" />
                             )}
                           </button>
                         </div>
@@ -1733,17 +1771,17 @@ export default function Home() {
               <button
                 onClick={handleExport}
                 disabled={isExporting || tracks.length === 0}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-700 dark:hover:bg-zinc-200 text-white dark:text-black rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-neon-purple/20 hover:bg-neon-purple/30 text-neon-cyan border border-neon-pink/50 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed group neon-border-pink"
               >
                 {isExporting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white dark:border-black border-t-transparent rounded-full animate-spin" />
-                    <span>Exporting...</span>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>EXPORTING...</span>
                   </>
                 ) : (
                   <>
-                    <Download className="w-4 h-4" />
-                    <span>Download all configurations</span>
+                    <Download className="w-4 h-4 group-hover:animate-pulse" />
+                    <span>DOWNLOAD ALL CONFIGURATIONS</span>
                   </>
                 )}
               </button>
@@ -1759,25 +1797,29 @@ export default function Home() {
               />
               <label
                 htmlFor="import-config"
-                className={`w-full flex items-center justify-center gap-2 px-4 py-2 border-2 border-zinc-300 dark:border-zinc-700 hover:border-zinc-400 dark:hover:border-zinc-600 rounded-lg cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                  isImporting ? 'bg-zinc-100 dark:bg-zinc-800' : 'bg-transparent'
-                }`}
+                className={`w-full flex items-center justify-center gap-2 px-4 py-2 border-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isImporting
+                    ? 'border-zinc-600 bg-zinc-800/50'
+                    : 'border-zinc-700 hover:border-neon-cyan bg-transparent'
+                } rounded-lg`}
               >
                 {isImporting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-zinc-900 dark:border-zinc-100 border-t-transparent rounded-full animate-spin" />
-                    <span>Importing...</span>
+                    <Loader2 className="w-4 h-4 animate-spin text-neon-pink" />
+                    <span className="font-mono">IMPORTING...</span>
                   </>
                 ) : (
                   <>
-                    <RotateCcw className="w-4 h-4" />
-                    <span>Import configuration</span>
+                    <RotateCcw className="w-4 h-4 text-neon-cyan" />
+                    <span className="font-mono">IMPORT CONFIGURATION</span>
                   </>
                 )}
               </label>
 
               {importMessage && (
-                <p className={`text-sm ${importMessage.error ? 'text-red-500' : 'text-green-600 dark:text-green-400'}`}>
+                <p className={`text-sm font-mono ${
+                  importMessage.error ? 'text-red-400' : 'text-neon-cyan'
+                }`}>
                   {importMessage.text}
                 </p>
               )}
@@ -1785,10 +1827,10 @@ export default function Home() {
               {/* Reset Button */}
               <button
                 onClick={handleReset}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-red-900/20 rounded-lg transition-colors border border-transparent hover:border-red-500/30"
               >
                 <Trash2 className="w-4 h-4" />
-                <span>Reset Everything</span>
+                <span>RESET EVERYTHING</span>
               </button>
             </div>
           )}
