@@ -61,9 +61,9 @@ export default function ABRepeatControls({
   };
 
   return (
-    <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
+    <div className="w-full mt-4 sm:mt-6 pt-4 border-t border-zinc-700/50">
       {/* AB Repeat Controls Header */}
-      <div className="flex items-center gap-3 mb-3">
+      <div className="flex items-center gap-3 mb-2 sm:mb-3">
         <span className="text-sm font-medium text-neon-cyan tracking-wide">AB REPEAT LOOPS</span>
       </div>
 

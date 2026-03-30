@@ -1205,16 +1205,16 @@ export default function Home() {
       )}
 
       {!isLoadingTracks && (
-        <main className="flex flex-col w-full md:max-w-md flex-col items-center gap-8 py-16 px-4 md:px-6 relative z-10">
+        <main className="flex flex-col w-full md:max-w-md flex-col items-center gap-6 sm:gap-8 py-8 sm:py-12 px-4 relative z-10">
           {/* Header with Neon Glow */}
-          <div className="flex items-center justify-between w-full mb-8">
-            <h1 className="text-3xl font-bold neon-text-pink tracking-wider">
+          <div className="flex items-center justify-between w-full mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl font-bold neon-text-pink tracking-wider">
               AUDIO PLAYER
             </h1>
             <div className="w-2 h-2 bg-neon-cyan rounded-full pulse-glow"></div>
           </div>
 
-        <div className="text-center mb-4">
+        <div className="text-center mb-3 sm:mb-4">
           {currentTrack ? (
             <>
               <h2 className="text-2xl font-semibold neon-text-cyan mb-2 tracking-wide">
@@ -1264,9 +1264,9 @@ export default function Home() {
         </div>
 
         {/* Controls Container with Neon Border */}
-        <div className="w-full mt-6 neon-border-pink rounded-2xl p-6 bg-[#1a0a2e]/80 backdrop-blur-sm">
+        <div className="w-full mt-4 sm:mt-6 neon-border-pink rounded-2xl p-4 sm:p-6 bg-[#1a0a2e]/80 backdrop-blur-sm">
         {/* Controls */}
-        <div className="flex flex-col items-center gap-3 w-full">
+        <div className="flex flex-col items-center gap-2 sm:gap-3 w-full">
           {/* Top row: Bookmark button above play button */}
           <div className="flex justify-center mb-2">
             <button
@@ -1276,7 +1276,7 @@ export default function Home() {
               aria-label="Add bookmark"
             >
               <Bookmark className="w-6 h-6 text-white group-hover:animate-pulse" />
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 ADD BOOKMARK
               </span>
             </button>
@@ -1291,7 +1291,7 @@ export default function Home() {
               aria-label="Fast backward 5 seconds"
             >
               <SkipBack className="w-6 h-6 text-white" />
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 -5s
               </span>
             </button>
@@ -1302,7 +1302,7 @@ export default function Home() {
               aria-label="Previous track"
             >
               <ChevronLeft className="w-6 h-6 text-white" />
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 PREV
               </span>
             </button>
@@ -1317,7 +1317,7 @@ export default function Home() {
               ) : (
                 <Play className="w-8 h-8 text-white" />
               )}
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 {isPlaying ? 'PAUSE' : 'PLAY'}
               </span>
             </button>
@@ -1328,7 +1328,7 @@ export default function Home() {
               aria-label="Next track"
             >
               <ChevronRight className="w-6 h-6 text-white" />
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 NEXT
               </span>
             </button>
@@ -1340,7 +1340,7 @@ export default function Home() {
               aria-label="Fast forward 5 seconds"
             >
               <SkipForward className="w-6 h-6 text-white" />
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-pink opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 +5s
               </span>
             </button>
@@ -1371,7 +1371,7 @@ export default function Home() {
                   {abCreationState === 'waiting_for_b' ? 'B' : 'A'}
                 </span>
               </div>
-              <span className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="hidden sm:absolute sm:-bottom-8 sm:left-1/2 sm:transform sm:-translate-x-1/2 text-xs text-neon-cyan opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 {abCreationState === 'waiting_for_b' ? 'SET B POINT' : 'SET A POINT'}
               </span>
             </button>
@@ -1379,7 +1379,7 @@ export default function Home() {
         </div>
 
         {/* Volume Control with Neon */}
-        <div className="flex items-center gap-3 w-full mt-6 pt-4 border-t border-zinc-700/50">
+        <div className="flex items-center gap-3 w-full mt-4 sm:mt-6 pt-4 border-t border-zinc-700/50">
           <button onClick={toggleMute} className="p-2 hover:bg-zinc-800/50 rounded-full transition-colors group relative">
             {isMuted || volume === 0 ? (
               <VolumeX className="w-5 h-5 text-neon-cyan" />
@@ -1401,7 +1401,7 @@ export default function Home() {
         </div>
 
         {/* Speed Control */}
-        <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
+        <div className="w-full mt-4 sm:mt-6 pt-4 border-t border-zinc-700/50">
           <div className="flex items-center justify-between mb-3">
             <span className="text-sm font-medium text-neon-cyan tracking-wide">PLAYBACK SPEED</span>
             <button
@@ -1445,8 +1445,8 @@ export default function Home() {
 
         {/* Playlist Section */}
         {tracks.length > 0 && (
-          <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
-            <h3 className="text-sm font-medium text-neon-cyan mb-3 tracking-wide">
+          <div className="w-full mt-4 sm:mt-6 pt-4 border-t border-zinc-700/50">
+            <h3 className="text-sm font-medium text-neon-cyan mb-2 sm:mb-3 tracking-wide">
               PLAYLIST ({tracks.length} {tracks.length === 1 ? 'TRACK' : 'TRACKS'})
             </h3>
             <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -1556,8 +1556,8 @@ export default function Home() {
         />
 
         {/* Bookmarks Section */}
-        <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
-          <h3 className="text-sm font-medium text-neon-cyan mb-3 tracking-wide">
+        <div className="w-full mt-4 sm:mt-6 pt-4 border-t border-zinc-700/50">
+          <h3 className="text-sm font-medium text-neon-cyan mb-2 sm:mb-3 tracking-wide">
             BOOKMARKS ({bookmarks.length})
           </h3>
           {bookmarks.length > 0 && (
@@ -1638,8 +1638,8 @@ export default function Home() {
         </div>
 
         {/* Upload Section */}
-        <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
-          <h3 className="text-sm font-medium text-neon-cyan mb-3 tracking-wide">
+        <div className="w-full mt-4 sm:mt-6 pt-4 border-t border-zinc-700/50">
+          <h3 className="text-sm font-medium text-neon-cyan mb-2 sm:mb-3 tracking-wide">
             UPLOAD YOUR OWN AUDIO
           </h3>
           <AudioUploader
@@ -1649,7 +1649,7 @@ export default function Home() {
         </div>
 
         {/* Configuration Section */}
-        <div className="w-full mt-6 pt-4 border-t border-zinc-700/50">
+        <div className="w-full mt-4 sm:mt-6 pt-4 border-t border-zinc-700/50">
           <button
             onClick={() => setIsConfigSectionOpen(!isConfigSectionOpen)}
             className="flex items-center justify-between w-full text-sm font-medium text-neon-cyan hover:text-neon-purple transition-colors"
@@ -1663,7 +1663,7 @@ export default function Home() {
           </button>
 
           {isConfigSectionOpen && (
-            <div className="mt-3 space-y-3">
+            <div className="mt-3 sm:mt-4 space-y-2 sm:space-y-3">
               {/* Configuration List */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between mb-2">
