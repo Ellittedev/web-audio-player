@@ -1284,16 +1284,50 @@ export default function Home() {
         {/* Progress Bar with Neon Styling */}
         <div className="w-full flex items-center gap-3 text-sm font-mono">
           <span className="text-neon-cyan w-12">{formatTime(currentTime)}</span>
-          <input
-            type="range"
-            min="0"
-            max={duration || 1}
-            step="0.1"
-            value={currentTime}
-            onChange={handleSeek}
-            disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
-            className="flex-1 h-2 bg-zinc-700/50 rounded-lg appearance-none cursor-pointer accent-neon-cyan disabled:opacity-50 disabled:cursor-not-allowed"
-          />
+          
+          {/* Seek Bar Container with Loop Range Indicator */}
+          <div className="relative flex-1 h-6 flex items-center">
+            {/* Background track */}
+            <div className="absolute w-full h-2 bg-zinc-700/50 rounded-lg" />
+            
+            {/* Loop range indicator (only shown when active loop exists) */}
+            {activeLoopId && currentTrack && loops.length > 0 && (() => {
+              const activeLoop = loops.find((l) => l.id === activeLoopId);
+              if (!activeLoop || duration === 0) return null;
+              
+              // Calculate percentage positions for A and B points
+              const aPercent = (activeLoop.aPoint / duration) * 100;
+              const bPercent = (activeLoop.bPoint / duration) * 100;
+              const rangeWidth = bPercent - aPercent;
+              
+              return (
+                <div
+                  className={`absolute h-2 rounded-lg transition-all duration-100 ${
+                    isPlaying ? 'neon-glow-cyan' : ''
+                  }`}
+                  style={{
+                    left: `${aPercent}%`,
+                    width: `${rangeWidth}%`,
+                    backgroundColor: 'rgba(6, 182, 212, 0.4)',
+                    border: '1px solid rgba(6, 182, 212, 0.5)',
+                  }}
+                />
+              );
+            })()}
+            
+            {/* Range input on top */}
+            <input
+              type="range"
+              min="0"
+              max={duration || 1}
+              step="0.1"
+              value={currentTime}
+              onChange={handleSeek}
+              disabled={(currentTrack && duration) ? (!currentTrack || duration === 0) : false}
+              className="relative z-10 flex-1 h-2 appearance-none cursor-pointer accent-neon-cyan disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+          </div>
+          
           <span className="text-neon-purple w-12">{formatTime(duration)}</span>
         </div>
 
