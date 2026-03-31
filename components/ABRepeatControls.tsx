@@ -122,7 +122,10 @@ export default function ABRepeatControls({
                   {onExportLoop && (
                     <div className="flex-1 bg-neon-purple/90 flex items-center justify-center neon-border-pink">
                       <button
-                        onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint);
+                        }}
                         disabled={isLoopExporting}
                         className="p-2 rounded text-white hover:bg-opacity-80 transition-colors disabled:opacity-50"
                         title="Export as MP3"
@@ -133,7 +136,11 @@ export default function ABRepeatControls({
                   )}
                   <div className="flex-1 bg-neon-cyan/90 flex items-center justify-center neon-border-pink">
                     <button
-                      onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Toggle only - play/pause via the button
+                        onToggleLoop(activeLoopId === loop.id ? null : loop.id);
+                      }}
                       className="p-2 rounded text-black hover:bg-opacity-80 transition-colors"
                       title={activeLoopId === loop.id ? "Stop this loop" : "Play this loop"}
                     >
@@ -146,7 +153,10 @@ export default function ABRepeatControls({
                   </div>
                   <div className="flex-1 bg-yellow-500/90 flex items-center justify-center neon-border-pink">
                     <button
-                      onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint);
+                      }}
                       className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
                       title="Edit loop"
                     >
@@ -155,7 +165,10 @@ export default function ABRepeatControls({
                   </div>
                   <div className="flex-1 bg-red-500/90 flex items-center justify-center neon-border-pink">
                     <button
-                      onClick={() => onDeleteLoop(loop.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteLoop(loop.id);
+                      }}
                       className="p-2 rounded text-white hover:bg-opacity-80 transition-colors"
                       title="Delete loop"
                     >
@@ -166,6 +179,12 @@ export default function ABRepeatControls({
               }
               onSwipeLeft={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
               threshold={30}
+              onClick={() => {
+                // Only play if not already active - don't toggle off via body click
+                if (activeLoopId !== loop.id) {
+                  onToggleLoop(loop.id);
+                }
+              }}
             >
               <div
                 className={`flex items-center justify-between p-3 rounded-lg transition-all group h-full ${
@@ -202,7 +221,10 @@ export default function ABRepeatControls({
                 <div className="hidden group-hover:flex items-center gap-1 flex-shrink-0">
                   {onExportLoop && (
                     <button
-                      onClick={() => onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onExportLoop(loop.id, loop.name, loop.aPoint, loop.bPoint);
+                      }}
                       disabled={isLoopExporting}
                       className="p-2 rounded bg-zinc-700 dark:bg-zinc-600 text-neon-cyan hover:bg-zinc-600 dark:hover:bg-zinc-500 transition-colors disabled:opacity-50"
                       title="Export as MP3"
@@ -211,7 +233,11 @@ export default function ABRepeatControls({
                     </button>
                   )}
                   <button
-                    onClick={() => onToggleLoop(activeLoopId === loop.id ? null : loop.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Toggle only - play/pause via the button
+                      onToggleLoop(activeLoopId === loop.id ? null : loop.id);
+                    }}
                     className={`p-2 rounded transition-colors ${
                       activeLoopId === loop.id
                         ? "bg-neon-cyan text-black hover:bg-opacity-80"
@@ -226,14 +252,20 @@ export default function ABRepeatControls({
                     )}
                   </button>
                   <button
-                    onClick={() => onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditLoopClick(loop.id, loop.name, loop.aPoint, loop.bPoint);
+                    }}
                     className="p-2 rounded bg-zinc-700 dark:bg-zinc-600 text-neon-cyan hover:bg-zinc-600 dark:hover:bg-zinc-500 transition-colors"
                     title="Edit loop"
                   >
                     <Edit2 className="w-4 h-4" />
                   </button>
                   <button
-                    onClick={() => onDeleteLoop(loop.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteLoop(loop.id);
+                    }}
                     className="p-2 rounded bg-zinc-700 dark:bg-zinc-600 text-red-400 hover:bg-red-900/30 hover:text-red-300 transition-colors"
                     title="Delete loop"
                   >

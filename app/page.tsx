@@ -618,7 +618,41 @@ export default function Home() {
   };
 
   const handleToggleABLoop = (loopId: string | null) => {
+    // If deactivating a loop, just set it to null
+    if (loopId === null) {
+      setActiveLoopId(null);
+      return;
+    }
+
+    // Get the loop details for the current track
+    const loops = currentTrack ? trackLoops[currentTrack.id] || [] : [];
+    const loop = loops.find((l) => l.id === loopId);
+
+    if (!loop) {
+      console.error('Loop not found:', loopId);
+      return;
+    }
+
+    // Check if this loop is already active - if so, don't do anything
+    if (activeLoopId === loopId) {
+      return;
+    }
+
+    // Set the active loop
     setActiveLoopId(loopId);
+
+    // Seek to A point and start playback
+    if (audioRef.current) {
+      audioRef.current.currentTime = loop.aPoint;
+      setCurrentTime(loop.aPoint);
+
+      // Start playback
+      audioRef.current.play().catch(err => {
+        console.error('Play error when activating loop:', err);
+        setIsPlaying(false);
+      });
+      setIsPlaying(true);
+    }
   };
 
   const formatTime = (time: number) => {

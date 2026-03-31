@@ -9,6 +9,7 @@ interface SwipeableItemProps {
   threshold?: number;
   disabled?: boolean;
   backgroundColors?: string[]; // Array of colors for each action button, or single color for all
+  onClick?: () => void;
 }
 
 export default function SwipeableItem({
@@ -18,6 +19,7 @@ export default function SwipeableItem({
   threshold = 50,
   disabled = false,
   backgroundColors,
+  onClick,
 }: SwipeableItemProps) {
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [swipeProgress, setSwipeProgress] = useState(0); // 0 to 1
@@ -112,6 +114,7 @@ export default function SwipeableItem({
 
       {/* Main content - stays in place */}
       <div
+        onClick={onClick}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
