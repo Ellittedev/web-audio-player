@@ -5,6 +5,9 @@
 ### Before Making Changes
 **Always create a step-by-step guide first**, share it with the user, and wait for approval before proceeding with implementation.
 
+### Branch Management
+For any significant change, **create a new branch** from v1.0 (the main branch) before implementing.
+
 ### Debugging Non-Obvious Issues
 When a fix doesn't resolve the issue:
 1. **Perform a discovery step**: Add console.logs to understand the actual state/behavior

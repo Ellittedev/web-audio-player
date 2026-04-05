@@ -107,7 +107,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setATimestamp(Math.max(0, aTimestamp - 1))}
-                    className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="px-3 py-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Decrease A point by 1 second"
                   >
                     <span className="text-lg">-</span>
@@ -118,12 +118,12 @@ export default function EditABLoopModal({
                     onChange={(e) => setATimestamp(parseTime(e.target.value))}
                     step="0.1"
                     min="0"
-                    className="flex-1 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono"
+                    className="w-24 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setATimestamp(aTimestamp + 1)}
-                    className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="px-3 py-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Increase A point by 1 second"
                   >
                     <span className="text-lg">+</span>
@@ -138,7 +138,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setBTimestamp(Math.max(0, bTimestamp - 1))}
-                    className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="px-3 py-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Decrease B point by 1 second"
                   >
                     <span className="text-lg">-</span>
@@ -149,12 +149,12 @@ export default function EditABLoopModal({
                     onChange={(e) => setBTimestamp(parseTime(e.target.value))}
                     step="0.1"
                     min="0"
-                    className="flex-1 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono"
+                    className="w-24 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono"
                   />
                   <button
                     type="button"
                     onClick={() => setBTimestamp(bTimestamp + 1)}
-                    className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="px-3 py-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Increase B point by 1 second"
                   >
                     <span className="text-lg">+</span>
