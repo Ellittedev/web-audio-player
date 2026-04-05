@@ -65,7 +65,7 @@ export default function EditBookmarkModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="bg-[#1a0a2e] border border-neon-pink/50 rounded-lg p-6 w-full max-w-[90%] sm:max-w-sm mx-auto shadow-xl neon-glow-pink relative overflow-hidden">
+      <div className="bg-[#1a0a2e] border border-neon-pink/50 rounded-lg p-6 w-full max-w-sm mx-4 shadow-xl neon-glow-pink relative overflow-hidden">
         {/* Background glow effect */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-purple via-neon-cyan to-neon-pink"></div>
         
@@ -91,14 +91,14 @@ export default function EditBookmarkModal({
             <label className="block text-sm font-medium text-neon-purple mb-2">
               TIMESTAMP
             </label>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setTimestamp(Math.max(0, timestamp - 1))}
-                className="w-16 h-16 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                 aria-label="Decrease timestamp by 1 second"
               >
-                <span className="text-2xl">-</span>
+                <span className="text-lg">-</span>
               </button>
               <input
                 type="text"
@@ -106,18 +106,18 @@ export default function EditBookmarkModal({
                 onChange={(e) => setTimestamp(parseTime(e.target.value))}
                 step="0.1"
                 min="0"
-                className="w-24 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono text-center"
+                className="flex-1 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono"
               />
               <button
                 type="button"
                 onClick={() => setTimestamp(timestamp + 1)}
-                className="w-16 h-16 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                 aria-label="Increase timestamp by 1 second"
               >
-                <span className="text-2xl">+</span>
+                <span className="text-lg">+</span>
               </button>
             </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 font-mono text-center">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 font-mono">
               CURRENT: {formatTime(timestamp)} | ORIGINAL: {formatTime(bookmarkTimestamp)}
             </p>
           </div>
