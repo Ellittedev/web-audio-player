@@ -107,7 +107,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setATimestamp(Math.max(0, aTimestamp - 1))}
-                    className="w-14 h-14 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="w-16 h-16 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Decrease A point by 1 second"
                   >
                     <span className="text-2xl">-</span>
@@ -123,7 +123,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setATimestamp(aTimestamp + 1)}
-                    className="w-14 h-14 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="w-16 h-16 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Increase A point by 1 second"
                   >
                     <span className="text-2xl">+</span>
@@ -138,7 +138,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setBTimestamp(Math.max(0, bTimestamp - 1))}
-                    className="w-14 h-14 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="w-16 h-16 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Decrease B point by 1 second"
                   >
                     <span className="text-2xl">-</span>
@@ -154,7 +154,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setBTimestamp(bTimestamp + 1)}
-                    className="w-14 h-14 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="w-16 h-16 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Increase B point by 1 second"
                   >
                     <span className="text-2xl">+</span>

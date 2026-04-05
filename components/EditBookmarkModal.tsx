@@ -95,7 +95,7 @@ export default function EditBookmarkModal({
               <button
                 type="button"
                 onClick={() => setTimestamp(Math.max(0, timestamp - 1))}
-                className="w-14 h-14 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                className="w-16 h-16 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                 aria-label="Decrease timestamp by 1 second"
               >
                 <span className="text-2xl">-</span>
@@ -111,7 +111,7 @@ export default function EditBookmarkModal({
               <button
                 type="button"
                 onClick={() => setTimestamp(timestamp + 1)}
-                className="w-14 h-14 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                className="w-16 h-16 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                 aria-label="Increase timestamp by 1 second"
               >
                 <span className="text-2xl">+</span>
