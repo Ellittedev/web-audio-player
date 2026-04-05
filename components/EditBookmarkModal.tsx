@@ -91,14 +91,14 @@ export default function EditBookmarkModal({
             <label className="block text-sm font-medium text-neon-purple mb-2">
               TIMESTAMP
             </label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <button
                 type="button"
                 onClick={() => setTimestamp(Math.max(0, timestamp - 1))}
-                className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                className="w-12 h-12 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                 aria-label="Decrease timestamp by 1 second"
               >
-                <span className="text-lg">-</span>
+                <span className="text-xl">-</span>
               </button>
               <input
                 type="text"
@@ -106,18 +106,18 @@ export default function EditBookmarkModal({
                 onChange={(e) => setTimestamp(parseTime(e.target.value))}
                 step="0.1"
                 min="0"
-                className="flex-1 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono"
+                className="flex-1 px-4 py-2 border border-zinc-600 rounded-lg bg-zinc-800/50 text-neon-cyan focus:outline-none focus:ring-2 focus:ring-neon-pink font-mono text-center"
               />
               <button
                 type="button"
                 onClick={() => setTimestamp(timestamp + 1)}
-                className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                className="w-12 h-12 flex items-center justify-center rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                 aria-label="Increase timestamp by 1 second"
               >
-                <span className="text-lg">+</span>
+                <span className="text-xl">+</span>
               </button>
             </div>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 font-mono">
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-2 font-mono text-center">
               CURRENT: {formatTime(timestamp)} | ORIGINAL: {formatTime(bookmarkTimestamp)}
             </p>
           </div>
