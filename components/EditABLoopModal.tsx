@@ -74,8 +74,8 @@ export default function EditABLoopModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="bg-[#1a0a2e] border border-neon-cyan/50 rounded-lg p-6 w-full max-w-sm mx-4 shadow-xl neon-glow-cyan relative overflow-hidden">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm overflow-x-auto">
+      <div className="bg-[#1a0a2e] border border-neon-cyan/50 rounded-lg p-6 w-full max-w-xs sm:max-w-sm mx-4 shadow-xl neon-glow-cyan relative overflow-hidden">
         {/* Background glow effect */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan"></div>
         
@@ -107,7 +107,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setATimestamp(Math.max(0, aTimestamp - 1))}
-                    className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="p-1 sm:p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Decrease A point by 1 second"
                   >
                     <span className="text-lg">-</span>
@@ -123,7 +123,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setATimestamp(aTimestamp + 1)}
-                    className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="p-1 sm:p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Increase A point by 1 second"
                   >
                     <span className="text-lg">+</span>
@@ -138,7 +138,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setBTimestamp(Math.max(0, bTimestamp - 1))}
-                    className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="p-1 sm:p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Decrease B point by 1 second"
                   >
                     <span className="text-lg">-</span>
@@ -154,7 +154,7 @@ export default function EditABLoopModal({
                   <button
                     type="button"
                     onClick={() => setBTimestamp(bTimestamp + 1)}
-                    className="p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
+                    className="p-1 sm:p-2 rounded-lg bg-zinc-700/50 hover:bg-zinc-600/50 text-neon-cyan transition-colors"
                     aria-label="Increase B point by 1 second"
                   >
                     <span className="text-lg">+</span>
