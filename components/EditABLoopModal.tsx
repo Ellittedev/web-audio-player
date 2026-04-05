@@ -75,7 +75,7 @@ export default function EditABLoopModal({
 
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="bg-[#1a0a2e] border border-neon-cyan/50 rounded-lg p-6 w-full max-w-sm mx-4 shadow-xl neon-glow-cyan relative overflow-hidden">
+      <div className="bg-[#1a0a2e] border border-neon-cyan/50 rounded-lg p-6 w-full max-w-[90%] sm:max-w-sm mx-auto shadow-xl neon-glow-cyan relative overflow-hidden">
         {/* Background glow effect */}
         <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-neon-pink via-neon-purple to-neon-cyan"></div>
         
